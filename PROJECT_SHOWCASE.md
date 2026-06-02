@@ -25,7 +25,24 @@ We use a composite AI model to compute a **Trust Score (0-1000)** based on:
 - Dispute history.
 This score serves as the underwriting data for our micro-credit engine.
 
-## 3. Why AreaHustle? (The Impact)
+## 3. The Core Financial Mechanics (Explained Simply)
+
+### 🔒 Escrow (The Lockbox)
+Imagine a lockbox. A customer wants their car washed. Before the Hustler shows up, the customer puts ₦8,000 into the lockbox. Neither party can touch it. AreaHustle holds the key. Once the job is confirmed done, AreaHustle opens the lockbox and pays the Hustler. If the Hustler doesn't show up, the customer gets their money back. **Escrow protects the customer's money until the job is done.**
+
+### 💸 Loan Sweep (The Intercept)
+A Hustler has a ₦40,000 loan for a pressure washer. Instead of sending him a monthly bill (which he might not pay), AreaHustle intercepts his earnings automatically. 
+If a job pays ₦5,000:
+- **₦1,000 goes to loan repayment** → **₦4,000 goes to the Hustler.**
+He never had the ₦1,000 in his hand, so he can't spend it elsewhere. The loan pays itself from his work. **The sweep protects the loan repayment before the Hustler can spend it.**
+
+### ⚠️ What if the Hustler disappears?
+If jobs reduce, the sweep reduces (no fixed bill to miss). But if a Hustler vanishes completely for months, we are protected by three things:
+1. **The MFB Partner holds the debt:** AreaHustle is the tech provider. The actual capital risk sits with a licensed Microfinance Bank.
+2. **The Asset is the Collateral:** We don't lend cash; we lend income-generating equipment (like a pressure washer) registered to the loan.
+3. **Data-Driven Sizing:** Credit limits are strictly sized to actual historical income velocity.
+
+## 4. Why AreaHustle? (The Impact)
 
 ### Financial Inclusion for the "Un-underwritable"
 Traditional banks (and even most digital lenders) cannot serve informal workers because they lack payslips and formal collateral. AreaHustle unlocks this data by treating **consistent "hustle" as collateral**. Every job completed is a verified income signal that powers a micro-loan pipeline via our MFB partners.

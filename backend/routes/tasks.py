@@ -13,27 +13,32 @@ async def create_task(task: Task, db: AsyncIOMotorDatabase = Depends(get_databas
     return {"id": str(new_task.inserted_id)}
 
 from google import genai
+from pydantic import BaseModel
 import json
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
+class TaskEntities(BaseModel):
+    category: str
+    neighbourhood: str
+    description: str
+
 async def extract_intent(text: str):
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-3-flash-preview',
         contents=text,
         config={
             'response_mime_type': 'application/json',
-            'system_instruction': f"""
+            'response_schema': TaskEntities,
+            'system_instruction': """
             You are a task extractor for the AreaHustle app.
             Extract task entities from the user's transcript.
             Categories: Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other.
             Neighbourhoods: Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu.
-            
-            Return JSON with these keys: category, neighbourhood, description.
             """
         }
     )
-    return response.parsed if hasattr(response, 'parsed') else json.loads(response.text)
+    return response.parsed
 
 @router.post("/voice-to-intent")
 async def voice_to_intent(audio_url: str, db: AsyncIOMotorDatabase = Depends(get_database)):

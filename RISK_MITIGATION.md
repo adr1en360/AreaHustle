@@ -31,18 +31,19 @@ As we build for the Nigerian informal economy, we recognize three critical risks
 
 ---
 
-## 3. The Business/Credit Risk (Scoring Validity)
-**Risk:** Uncertainty whether high platform ratings and job reliability (being a "Good Plumber") actually correlate with financial reliability (being a "Good Borrower").
+## 3. The Business/Credit Risk (Income Volatility)
+**Risk:** Our biggest credit risk is income volatility, not borrower character. A reliable Hustler with a high rating can still have a slow month due to demand patterns. A fixed loan repayment during a slow period will lead to default, breaking the credit loop.
 
 ### 🛡️ Mitigation Strategy
-- **Behavioral Correlation Tiers:**
-    - Our model doesn't just look at "Stars." It prioritizes **"Skin in the Game"** signals:
-        - **Consistency over Volume:** A Hustler who works 3 days a week every week is scored higher than one who works 15 days once and disappears.
-        - **Repeat Hire Ratio:** This is our strongest signal. If customers hire the same Hustler again, it indicates professional integrity—the most consistent predictor of repayment.
-- **Micro-Sweep Mechanism:**
-    - We mitigate repayment risk through **Automated Escrow Sweeps**. Instead of asking for a monthly payment, we deduct a fixed percentage (e.g., 20%) from *every* completed job payout. This aligns the loan repayment with the Hustler's actual cash flow.
-- **Progressive Credit Limits:**
-    - Loans start small (₦15,000) for "Equipment Advances." We only increase limits after 3 successful automated repayment cycles, ensuring the data confirms the behavior before increasing exposure.
+Three structural mechanics protect us from the "good Hustler, bad borrower" failure:
+
+1. **Income Velocity Weighting:**
+    - Our Trust Score weights transaction consistency (frequency + regularity) heavily. A Hustler with 3 jobs/week consistently beats one with 15 jobs one month and 2 the next. The credit limit engine sizes loans to sustainable income velocity, not peak earnings.
+2. **Variable Sweep Percentage (Not Fixed):**
+    - We design the sweep as a % of each payout (e.g., 20% per job) rather than a fixed monthly amount. The repayment scales down automatically when the Hustler has a slow month. No income, no sweep — but no default either, just an extended term.
+3. **Income-Generating Asset Loans:**
+    - Unlike consumption loans, our equipment loans (e.g., a ₦40,000 pressure washer) directly increase the Hustler's job capacity and earning rate. The loan actively improves the income required to repay it.
+
 
 ---
 **AreaHustle: Building resilience into the hustle.**

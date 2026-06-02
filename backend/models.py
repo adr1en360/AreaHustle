@@ -33,3 +33,21 @@ class Task(BaseModel):
     voice_payload_url: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
+
+class Loan(BaseModel):
+    id: Optional[str] = Field(None, alias="_id")
+    hustler_id: str
+    mfb_partner_id: str = "mock_mfb_partner"
+    principal: float
+    outstanding_balance: float
+    sweep_percentage: float = 0.20 # 20% by default
+    status: str = "active" # active, settled, defaulted
+    issued_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Transaction(BaseModel):
+    id: Optional[str] = Field(None, alias="_id")
+    user_id: str
+    task_id: Optional[str] = None
+    type: str # escrow_hold, payout, loan_sweep, topup, withdrawal
+    amount: float
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

@@ -53,6 +53,17 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine. Versio
 - `neighbourhood`
 - `status` (open/matched/active/completed/disputed)
 
+### Loan
+- `hustler_id`
+- `principal` & `outstanding_balance`
+- `sweep_percentage` (e.g., 20%)
+- `status` (active/settled/defaulted)
+
+### Transaction
+- `user_id` & `task_id`
+- `type` (escrow_hold/payout/loan_sweep)
+- `amount`
+
 ## 5. Security & Compliance
 - **Credential Management:** All API keys (Aethex, Gemini, MongoDB) stored in `.env` and excluded from version control.
 - **PII Protection:** Only anonymized hashes passed to AI inference pipelines.
