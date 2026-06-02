@@ -1,8 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routes import tasks, users, passport
 from database import init_db
 
 app = FastAPI(title="AreaHustle API", version="3.0")
+
+# Enable CORS for local testing
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_event():

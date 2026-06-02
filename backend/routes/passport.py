@@ -14,8 +14,43 @@ async def get_my_passport(hustler_id: str, db: AsyncIOMotorDatabase = Depends(ge
 
 @router.post("/voice-session")
 async def start_voice_session(hustler_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
-    # ... (existing code) ...
-    return {} # Implementation details in previous turns
+    # Fetch Hustler data
+    profile = await db.hustler_profiles.find_one({"user_id": hustler_id})
+    # For demo purposes, create a profile if not found
+    if not profile:
+        profile = {"trust_score": 820, "completed_jobs": 15}
+    
+    # Call Aethex /conversation/connect
+    async with httpx.AsyncClient() as client:
+        headers = {"X-API-Key": settings.AETHEX_API_KEY, "Content-Type": "application/json"}
+        payload = {
+            "agent_id": settings.AETHEX_PASSPORT_AGENT_ID,
+            "metadata": {
+                "hustler_id": hustler_id,
+                "trust_score": profile.get("trust_score"),
+                "completed_jobs": profile.get("completed_jobs")
+            }
+        }
+        response = await client.post(f"{settings.AETHEX_BASE_URL}/conversation/connect", json=payload, headers=headers)
+        
+        if response.status_code != 201:
+            raise HTTPException(status_code=response.status_code, detail=f"Aethex connection failed: {response.text}")
+            
+        return response.json()
+
+@router.post("/voice-session/{session_id}/offer")
+async def proxy_offer(session_id: str, sdp_data: dict):
+    """
+    Proxies the WebRTC SDP offer from the browser to Aethex API.
+    """
+    async with httpx.AsyncClient() as client:
+        headers = {"X-API-Key": settings.AETHEX_API_KEY, "Content-Type": "application/json"}
+        response = await client.post(
+            f"{settings.AETHEX_BASE_URL}/conversation/{session_id}/offer",
+            json=sdp_data,
+            headers=headers
+        )
+        return response.json()
 
 @router.post("/demo/complete-job-sweep")
 async def demo_complete_job_sweep(hustler_id: str, job_amount: float = 5000.0, db: AsyncIOMotorDatabase = Depends(get_database)):
