@@ -12,29 +12,28 @@ async def create_task(task: Task, db: AsyncIOMotorDatabase = Depends(get_databas
     new_task = await db.tasks.insert_one(task.dict(by_alias=True, exclude={"id"}))
     return {"id": str(new_task.inserted_id)}
 
-import google.generativeai as genai
+from google import genai
 import json
 
-genai.configure(api_key=settings.GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 async def extract_intent(text: str):
-    prompt = f"""
-    Extract task entities from the following text: "{text}"
-    Categories: Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other.
-    Neighbourhoods: Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu.
-    
-    Return ONLY JSON:
-    {{
-        "category": "...",
-        "neighbourhood": "...",
-        "description": "..."
-    }}
-    """
-    response = await model.generate_content_async(prompt)
-    # Basic cleaning of response text to handle potential markdown
-    content = response.text.strip().replace('```json', '').replace('```', '')
-    return json.loads(content)
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=text,
+        config={
+            'response_mime_type': 'application/json',
+            'system_instruction': f"""
+            You are a task extractor for the AreaHustle app.
+            Extract task entities from the user's transcript.
+            Categories: Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other.
+            Neighbourhoods: Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu.
+            
+            Return JSON with these keys: category, neighbourhood, description.
+            """
+        }
+    )
+    return response.parsed if hasattr(response, 'parsed') else json.loads(response.text)
 
 @router.post("/voice-to-intent")
 async def voice_to_intent(audio_url: str, db: AsyncIOMotorDatabase = Depends(get_database)):

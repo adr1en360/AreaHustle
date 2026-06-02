@@ -32,14 +32,24 @@ async def test_intent_extraction():
     """
 
     try:
-        # Switching to 1.5 Flash
+        # Using gemini-2.5-flash as the most robust model for extraction in 2026
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=prompt
+            model='gemini-2.5-flash',
+            contents=test_transcript,
+            config={
+                'response_mime_type': 'application/json',
+                'system_instruction': f"""
+                You are a task extractor for the AreaHustle app.
+                Extract task entities from the user's transcript.
+                Categories: Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other.
+                Neighbourhoods: Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu.
+                
+                Return JSON with these keys: category, neighbourhood, description.
+                """
+            }
         )
         
-        content = response.text.strip().replace('```json', '').replace('```', '')
-        entities = json.loads(content)
+        entities = response.parsed if hasattr(response, 'parsed') else json.loads(response.text)
         
         print("\n--- Extraction Results ---")
         print(f"Original Transcript: {test_transcript}")
