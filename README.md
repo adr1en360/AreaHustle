@@ -87,5 +87,4 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine designe
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
-Built for the **Aethex Hackathon 2026**. Contributions are welcome via Pull Requests.
+Built for the **YPIT (Young People in Tech) Hackathon 2026**.
