@@ -2,7 +2,7 @@
 
 **"Your Area, Your Hustle, Your Trust."**
 
-AreaHustle is a hyper-local gig marketplace and behavioral credit engine designed for the Nigerian market. Version 3.0 leverages **Voice-first AI** to bridge the digital literacy gap, allowing households to post tasks and workers to manage their financial identity through natural voice conversations.
+AreaHustle is a hyper-local gig marketplace and behavioral credit engine designed for the Nigerian market. Version 3.0 leverages **Voice-first AI** to bridge the digital literacy gap, allowing middle-class households and small businesses to post tasks and workers to manage their financial identity through natural voice conversations.
 
 ---
 
