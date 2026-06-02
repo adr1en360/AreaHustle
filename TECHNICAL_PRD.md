@@ -63,6 +63,7 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine. Versio
     - Voice-to-Intent task posting.
     - Real-time voice interaction for Financial Passport.
     - Basic Trust Score computation.
+- **Target User:** Middle-class households and small businesses looking for verified local service providers.
 - **Out-of-Scope:**
     - USSD fallback (Phase 2).
     - Insurance products.
