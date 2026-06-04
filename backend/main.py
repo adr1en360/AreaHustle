@@ -1,9 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
+from fastapi.staticfiles import StaticFiles
+import os
 from routes import auth, tasks, users, passport, loans
 from database import init_db
 
-app = FastAPI(title="AreaHustle API", version="3.0")
+app = FastAPI(
+    title="AreaHustle API",
+    version="3.0",
+    docs_url=None,
+    redoc_url=None,
+)
 
 # Enable CORS for local testing
 app.add_middleware(
@@ -13,6 +21,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for offline docs
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+        swagger_favicon_url="/static/favicon.png",
+    )
+
+@app.get("/docs/oauth2-redirect", include_in_schema=False)
+async def swagger_ui_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_html():
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - ReDoc",
+        redoc_js_url="/static/redoc.standalone.js",
+        redoc_favicon_url="/static/favicon.png",
+    )
 
 @app.on_event("startup")
 async def startup_event():
@@ -27,3 +63,4 @@ app.include_router(loans.router, prefix="/api/v1/loans", tags=["Loans & Transact
 @app.get("/")
 async def root():
     return {"message": "Welcome to AreaHustle API v3.0"}
+

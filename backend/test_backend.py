@@ -25,7 +25,7 @@ tokens = {"customer": "", "hustler": ""}
 
 
 async def register_and_login(role: str):
-    email = f"{role}@areahustle.test"
+    email = f"{role}@areahustle.com"
     password = "password123"
     async with httpx.AsyncClient() as client:
         # Register
