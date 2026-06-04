@@ -1,0 +1,224 @@
+{
+  "info": {
+    "name": "AreaHustle API v3.0",
+    "description": "Full backend API for AreaHustle - gig marketplace & behavioral credit engine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hustler@areahustle.test\",\n  \"password\": \"password123\",\n  \"role\": \"hustler\",\n  \"name\": \"Adaeze O.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/x-www-form-urlencoded"}],
+            "url": "{{base_url}}/api/v1/auth/login",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {"key": "username", "value": "hustler@areahustle.test"},
+                {"key": "password", "value": "password123"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/tasks/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Cleaning\",\n  \"description\": \"Deep clean my 2BR apartment\",\n  \"budget\": 15000,\n  \"neighbourhood\": \"Lekki Phase 1\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/tasks/?status=open&neighbourhood=Lekki Phase 1"
+          }
+        },
+        {
+          "name": "Match Task",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/tasks/{{task_id}}/match"
+          }
+        },
+        {
+          "name": "Activate Task",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/tasks/{{task_id}}/activate"
+          }
+        },
+        {
+          "name": "Complete Task",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/tasks/{{task_id}}/complete"
+          }
+        },
+        {
+          "name": "Voice-to-Intent",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/tasks/voice-to-intent?audio_url=demo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create Hustler Profile",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/users/hustler-profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_areas\": [\"Lekki Phase 1\", \"Ajah\"],\n  \"categories\": [\"Cleaning\", \"Repairs\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Hustler Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/users/hustler-profile"
+          }
+        },
+        {
+          "name": "Nearby Hustlers",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/users/nearby-hustlers?neighbourhood=Lekki Phase 1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passport",
+      "item": [
+        {
+          "name": "Get Passport",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/passport/me"
+          }
+        },
+        {
+          "name": "Start Voice Session",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/passport/voice-session"
+          }
+        },
+        {
+          "name": "Complete Job Sweep (Demo)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/passport/demo/complete-job-sweep",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_amount\": 5000\n}"
+            }
+          }
+        },
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/passport/transactions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loans",
+      "item": [
+        {
+          "name": "Create Loan",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/loans/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 50000,\n  \"sweep_percentage\": 0.20\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Active Loan",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/loans/active"
+          }
+        },
+        {
+          "name": "List My Loans",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/loans/"
+          }
+        },
+        {
+          "name": "List My Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{base_url}}/api/v1/loans/transactions"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "token", "value": ""},
+    {"key": "task_id", "value": ""}
+  ]
+}

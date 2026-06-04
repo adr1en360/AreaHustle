@@ -23,8 +23,12 @@ async def init_db():
     await db.tasks.create_index([("neighbourhood", 1), ("category", 1)])
     # Hustler Profiles: Filter by service_areas and trust_score
     await db.hustler_profiles.create_index([("service_areas", 1), ("trust_score", -1)])
-    # Users: Unique auth_id
-    await db.users.create_index("auth_id", unique=True)
+    # Users: Unique email
+    await db.users.create_index("email", unique=True)
+    # Loans: hustler_id index
+    await db.loans.create_index("hustler_id")
+    # Transactions: user_id + type index
+    await db.transactions.create_index([("user_id", 1), ("timestamp", -1)])
 
 async def get_database():
     return db
