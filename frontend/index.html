@@ -1,102 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AreaHustle - Aethex Voice Test</title>
-    <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 2rem; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
-        button { padding: 1rem 2rem; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; margin: 10px; }
-        .start { background: #28a745; color: white; }
-        .stop { background: #dc3545; color: white; }
-        #status { margin-top: 1rem; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>🎙️ Aethex Voice Test</h1>
-        <p>Test the Financial Passport Assistant</p>
-        <div id="status">Ready</div>
-        <button id="startBtn" class="start">Start Call</button>
-        <button id="stopBtn" class="stop" disabled>End Call</button>
-        <audio id="audioOut" autoplay playsinline></audio>
-    </div>
-
-    <script>
-        const API_BASE = "http://127.0.0.1:8000/api/v1/passport";
-        let pc = null;
-        let localStream = null;
-
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const status = document.getElementById('status');
-        const audioOut = document.getElementById('audioOut');
-
-        async function startCall() {
-            try {
-                status.innerText = "Connecting to backend...";
-                startBtn.disabled = true;
-
-                // 1. Get Session from our backend
-                const res = await fetch(`${API_BASE}/voice-session?hustler_id=test_hustler_88`, { method: 'POST' });
-                const { session_id, ice_config } = await res.json();
-
-                status.innerText = "Initializing WebRTC...";
-                pc = new RTCPeerConnection(ice_config);
-
-                // 2. Set up tracks
-                pc.ontrack = (event) => {
-                    audioOut.srcObject = event.streams[0];
-                };
-
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-                // 3. Create Offer
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-
-                // Wait for ICE gathering
-                await new Promise(resolve => {
-                    if (pc.iceGatheringState === 'complete') resolve();
-                    else {
-                        pc.onicegatheringstatechange = () => {
-                            if (pc.iceGatheringState === 'complete') resolve();
-                        };
-                    }
-                });
-
-                // 4. Send Offer to Aethex via our proxy
-                const answerRes = await fetch(`${API_BASE}/voice-session/${session_id}/offer`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sdp: pc.localDescription.sdp, type: 'offer' })
-                });
-                const answer = await answerRes.json();
-
-                // 5. Set Remote Description
-                await pc.setRemoteDescription(new RTCSessionDescription({ sdp: answer.sdp, type: 'answer' }));
-
-                status.innerText = "Connected to Assistant 🎙️";
-                stopBtn.disabled = false;
-            } catch (err) {
-                console.error(err);
-                status.innerText = "Error: " + err.message;
-                startBtn.disabled = false;
-            }
-        }
-
-        function stopCall() {
-            if (pc) pc.close();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            status.innerText = "Call Ended";
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-        }
-
-        startBtn.onclick = startCall;
-        stopBtn.onclick = stopCall;
-    </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
