@@ -11,7 +11,7 @@ const SAMPLE = {
   cat: "Errands",
   budget: 2000,
   area: "Lekki Phase 1",
-  title: "Errand — Shoprite Lekki drop-off",
+  title: "Errand - Shoprite Lekki drop-off",
 };
 
 export function VoiceTerminal() {
@@ -90,9 +90,7 @@ export function VoiceTerminal() {
               {phase === "ready" && "Here's your structured task"}
             </h3>
             <p className="text-xs text-muted-foreground mb-6">
-              {phase === "ready"
-                ? "Confirm to publish to hustlers in your area."
-                : "Speak naturally in English, French or Arabic."}
+              {phase === "ready" ? "Confirm to publish to hustlers in your area." : "Speak naturally in English, French or Arabic."}
             </p>
 
             {phase !== "ready" && (
@@ -123,13 +121,9 @@ export function VoiceTerminal() {
 
             {phase === "ready" && (
               <div className="space-y-4 animate-fade-up">
-                <div className="rounded-2xl bg-muted/60 p-4 text-sm italic text-muted-foreground">
-                  "{SAMPLE.text}"
-                </div>
+                <div className="rounded-2xl bg-muted/60 p-4 text-sm italic text-muted-foreground">"{SAMPLE.text}"</div>
                 <div className="rounded-2xl border bg-card p-5">
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
-                    Parsed by Gemini
-                  </div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Parsed by Gemini</div>
                   <div className="font-display text-lg font-bold mb-3">{SAMPLE.title}</div>
                   <div className="flex flex-wrap gap-2">
                     <Chip label="Category" value={SAMPLE.cat} />
@@ -138,10 +132,7 @@ export function VoiceTerminal() {
                   </div>
                 </div>
                 <div className="flex gap-3 pt-1">
-                  <button
-                    onClick={close}
-                    className="flex-1 rounded-2xl border py-3 text-sm font-semibold hover:bg-muted transition"
-                  >
+                  <button onClick={close} className="flex-1 rounded-2xl border py-3 text-sm font-semibold hover:bg-muted transition">
                     Re-record
                   </button>
                   <button

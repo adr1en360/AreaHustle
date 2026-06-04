@@ -21,7 +21,7 @@ interface LedgerRow {
 }
 
 const BASE_LEDGER: LedgerRow[] = [
-  { t: "Deep Clean — 2BR", type: "IN", amount: 15000, when: "Yesterday", note: "Mr. Lawal · Ikoyi" },
+  { t: "Deep Clean - 2BR", type: "IN", amount: 15000, when: "Yesterday", note: "Mr. Lawal · Ikoyi" },
   { t: "Loan Repayment (20%)", type: "SWEEP", amount: -3000, when: "Yesterday", note: "Auto-swept" },
   { t: "Final Credit", type: "WALLET", amount: 12000, when: "Yesterday", note: "Net to wallet" },
   { t: "AC Repair", type: "IN", amount: 12000, when: "Mon", note: "Chuka N. · Yaba" },
@@ -70,7 +70,10 @@ function Passport() {
           <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">Welcome back, {user.name.split(" ")[0]}.</h1>
           <p className="text-muted-foreground mt-2">Your hustle is your credit. Here's the proof.</p>
         </div>
-        <button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-voice text-voice-foreground px-5 py-3 text-sm font-semibold shadow-soft hover:opacity-95 transition">
+        <button
+          onClick={() => setAiOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full bg-voice text-voice-foreground px-5 py-3 text-sm font-semibold shadow-soft hover:opacity-95 transition"
+        >
           <Mic className="h-4 w-4" /> Ask Aethex
         </button>
       </div>
@@ -103,7 +106,9 @@ function Passport() {
             <div className="text-xs opacity-70 mt-1">Available for withdrawal</div>
           </div>
           <div className="grid grid-cols-2 gap-3 mt-6">
-            <button className="rounded-2xl bg-primary-foreground/10 hover:bg-primary-foreground/20 py-2.5 text-xs font-semibold transition">Withdraw</button>
+            <button className="rounded-2xl bg-primary-foreground/10 hover:bg-primary-foreground/20 py-2.5 text-xs font-semibold transition">
+              Withdraw
+            </button>
             <button className="rounded-2xl bg-primary-foreground text-primary py-2.5 text-xs font-semibold">Top up</button>
           </div>
         </div>
@@ -119,7 +124,9 @@ function Passport() {
           <div className="mt-5 rounded-2xl bg-muted/60 p-4">
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="text-muted-foreground">Active loan</span>
-              <span className="font-semibold">{naira(40000)} / {naira(50000)}</span>
+              <span className="font-semibold">
+                {naira(40000)} / {naira(50000)}
+              </span>
             </div>
             <div className="h-1.5 rounded-full bg-card overflow-hidden">
               <div className="h-full bg-success rounded-full" style={{ width: "80%" }} />
@@ -135,7 +142,7 @@ function Passport() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display text-2xl font-bold">Escrow Sweep Ledger</h2>
-            <p className="text-xs text-muted-foreground mt-1">Every job, every sweep, every credit — fully auditable.</p>
+            <p className="text-xs text-muted-foreground mt-1">Every job, every sweep, every credit - fully auditable.</p>
           </div>
           <button className="text-xs text-muted-foreground hover:text-foreground">Export CSV</button>
         </div>
@@ -158,10 +165,18 @@ function Passport() {
                   <tr key={i} className={`border-b last:border-0 transition ${row.highlight ? "bg-success/5 animate-fade-up" : "hover:bg-muted/40"}`}>
                     <td className="py-4 px-7">
                       <div className="flex items-center gap-3">
-                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          isIn ? "bg-primary/10 text-primary" : isSweep ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
-                        }`}>
-                          {isIn ? <ArrowDownRight className="h-4 w-4" /> : isSweep ? <ArrowUpRight className="h-4 w-4" /> : <Wallet className="h-4 w-4" />}
+                        <div
+                          className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            isIn ? "bg-primary/10 text-primary" : isSweep ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
+                          }`}
+                        >
+                          {isIn ? (
+                            <ArrowDownRight className="h-4 w-4" />
+                          ) : isSweep ? (
+                            <ArrowUpRight className="h-4 w-4" />
+                          ) : (
+                            <Wallet className="h-4 w-4" />
+                          )}
                         </div>
                         <div>
                           <div className="font-semibold">{row.t}</div>
@@ -171,14 +186,21 @@ function Passport() {
                     </td>
                     <td className="py-4 text-xs text-muted-foreground hidden sm:table-cell">{row.when}</td>
                     <td className="py-4 hidden md:table-cell">
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider rounded-full px-2 py-1 ${
-                        isIn ? "bg-primary/10 text-primary" : isSweep ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
-                      }`}>{row.type}</span>
+                      <span
+                        className={`text-[10px] font-semibold uppercase tracking-wider rounded-full px-2 py-1 ${
+                          isIn ? "bg-primary/10 text-primary" : isSweep ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
+                        }`}
+                      >
+                        {row.type}
+                      </span>
                     </td>
-                    <td className={`py-4 px-7 text-right font-display font-bold tabular-nums ${
-                      isSweep ? "text-destructive/80" : isWallet ? "text-success" : ""
-                    }`}>
-                      {row.amount > 0 ? "+" : ""}{naira(row.amount)}
+                    <td
+                      className={`py-4 px-7 text-right font-display font-bold tabular-nums ${
+                        isSweep ? "text-destructive/80" : isWallet ? "text-success" : ""
+                      }`}
+                    >
+                      {row.amount > 0 ? "+" : ""}
+                      {naira(row.amount)}
                     </td>
                   </tr>
                 );
@@ -203,10 +225,12 @@ function Passport() {
               </div>
               <div className="mt-5 font-display text-xl font-semibold">"What is my current Trust Score?"</div>
               <div className="mt-4 rounded-2xl bg-muted p-4 text-sm">
-                Your Trust Score is <span className="font-bold text-foreground">{user.trustScore} out of 1000</span>.
-                You've climbed 24 points this month and are eligible for up to {naira(150000)} in financing.
+                Your Trust Score is <span className="font-bold text-foreground">{user.trustScore} out of 1000</span>. You've climbed 24 points this
+                month and are eligible for up to {naira(150000)} in financing.
               </div>
-              <button onClick={() => setAiOpen(false)} className="mt-5 rounded-full border px-5 py-2 text-xs font-semibold">Close</button>
+              <button onClick={() => setAiOpen(false)} className="mt-5 rounded-full border px-5 py-2 text-xs font-semibold">
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -238,8 +262,30 @@ function BigDial({ value }: { value: number }) {
   return (
     <div className="relative flex items-center justify-center">
       <svg viewBox="0 0 160 160" className="h-44 w-44 -rotate-[135deg]">
-        <circle cx="80" cy="80" r={r} fill="none" stroke="currentColor" className="text-muted" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * 0.25} />
-        <circle cx="80" cy="80" r={r} fill="none" stroke="currentColor" className="text-primary transition-all duration-[1800ms] ease-out" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
+        <circle
+          cx="80"
+          cy="80"
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          className="text-muted"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * 0.25}
+        />
+        <circle
+          cx="80"
+          cy="80"
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          className="text-primary transition-all duration-[1800ms] ease-out"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={off}
+        />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="font-display text-4xl font-bold tabular-nums">

@@ -11,14 +11,96 @@ export const Route = createFileRoute("/jobs")({
 });
 
 const JOBS: PostedJob[] = [
-  { id: 101, title: "Generator Servicing", area: "Lekki Phase 1", dist: "1.2 km", budget: 5000, rating: 4.9, customer: "Sarah O.", cat: "Repairs", urgent: true, posted: "2m ago" },
-  { id: 102, title: "Deep Clean — 3BR Apt", area: "Ikoyi", dist: "2.1 km", budget: 22000, rating: 4.7, customer: "Mr. Lawal", cat: "Cleaning", posted: "8m ago" },
-  { id: 103, title: "Plumbing — Burst Pipe", area: "Lekki Phase 1", dist: "0.9 km", budget: 12000, rating: 4.8, customer: "Sade O.", cat: "Plumbing", urgent: true, posted: "12m ago" },
-  { id: 104, title: "AC Installation (1.5HP)", area: "Yaba", dist: "5.3 km", budget: 15000, rating: 4.6, customer: "Chuka N.", cat: "Repairs", posted: "31m ago" },
-  { id: 105, title: "Tutor — JSS2 Maths (1hr)", area: "Magodo", dist: "8.0 km", budget: 6500, rating: 5.0, customer: "Mrs. Bello", cat: "Tutoring", posted: "1h ago" },
-  { id: 106, title: "Errand — Pickup at Shoprite", area: "Lekki Phase 1", dist: "0.6 km", budget: 3500, rating: 4.5, customer: "Tunde A.", cat: "Errands", posted: "1h ago" },
-  { id: 107, title: "Hairdresser — Home visit", area: "Victoria Island", dist: "3.8 km", budget: 18000, rating: 4.9, customer: "Ada O.", cat: "Beauty", posted: "2h ago" },
-  { id: 108, title: "Painting — Bedroom", area: "Ajah", dist: "6.4 km", budget: 25000, rating: 4.7, customer: "Mr. Eze", cat: "Repairs", posted: "3h ago" },
+  {
+    id: 101,
+    title: "Generator Servicing",
+    area: "Lekki Phase 1",
+    dist: "1.2 km",
+    budget: 5000,
+    rating: 4.9,
+    customer: "Sarah O.",
+    cat: "Repairs",
+    urgent: true,
+    posted: "2m ago",
+  },
+  {
+    id: 102,
+    title: "Deep Clean - 3BR Apt",
+    area: "Ikoyi",
+    dist: "2.1 km",
+    budget: 22000,
+    rating: 4.7,
+    customer: "Mr. Lawal",
+    cat: "Cleaning",
+    posted: "8m ago",
+  },
+  {
+    id: 103,
+    title: "Plumbing - Burst Pipe",
+    area: "Lekki Phase 1",
+    dist: "0.9 km",
+    budget: 12000,
+    rating: 4.8,
+    customer: "Sade O.",
+    cat: "Plumbing",
+    urgent: true,
+    posted: "12m ago",
+  },
+  {
+    id: 104,
+    title: "AC Installation (1.5HP)",
+    area: "Yaba",
+    dist: "5.3 km",
+    budget: 15000,
+    rating: 4.6,
+    customer: "Chuka N.",
+    cat: "Repairs",
+    posted: "31m ago",
+  },
+  {
+    id: 105,
+    title: "Tutor - JSS2 Maths (1hr)",
+    area: "Magodo",
+    dist: "8.0 km",
+    budget: 6500,
+    rating: 5.0,
+    customer: "Mrs. Bello",
+    cat: "Tutoring",
+    posted: "1h ago",
+  },
+  {
+    id: 106,
+    title: "Errand - Pickup at Shoprite",
+    area: "Lekki Phase 1",
+    dist: "0.6 km",
+    budget: 3500,
+    rating: 4.5,
+    customer: "Tunde A.",
+    cat: "Errands",
+    posted: "1h ago",
+  },
+  {
+    id: 107,
+    title: "Hairdresser - Home visit",
+    area: "Victoria Island",
+    dist: "3.8 km",
+    budget: 18000,
+    rating: 4.9,
+    customer: "Ada O.",
+    cat: "Beauty",
+    posted: "2h ago",
+  },
+  {
+    id: 108,
+    title: "Painting - Bedroom",
+    area: "Ajah",
+    dist: "6.4 km",
+    budget: 25000,
+    rating: 4.7,
+    customer: "Mr. Eze",
+    cat: "Repairs",
+    posted: "3h ago",
+  },
 ];
 
 const CATS = ["All", "Repairs", "Cleaning", "Plumbing", "Tutoring", "Errands", "Beauty"];
@@ -42,10 +124,7 @@ function Jobs() {
   }, []);
 
   const allJobs = [...extraJobs, ...JOBS];
-  const filtered = allJobs.filter((j) =>
-    (cat === "All" || j.cat === cat) &&
-    (q === "" || j.title.toLowerCase().includes(q.toLowerCase()))
-  );
+  const filtered = allJobs.filter((j) => (cat === "All" || j.cat === cat) && (q === "" || j.title.toLowerCase().includes(q.toLowerCase())));
 
   const openJob = (j: PostedJob) => {
     setSelected(j);
@@ -99,12 +178,18 @@ function Jobs() {
                 <h3 className="font-display text-xl font-bold leading-snug">{j.title}</h3>
               </div>
               {j.urgent && (
-                <span className="rounded-full bg-destructive/10 text-destructive text-[10px] font-semibold px-2 py-1 uppercase tracking-wider">Urgent</span>
+                <span className="rounded-full bg-destructive/10 text-destructive text-[10px] font-semibold px-2 py-1 uppercase tracking-wider">
+                  Urgent
+                </span>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground mb-5">
-              <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {j.area} · {j.dist}</span>
-              <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {j.posted}</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3" /> {j.area} · {j.dist}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {j.posted}
+              </span>
             </div>
             <div className="border-t -mx-6 mb-4" />
             <div className="flex items-center justify-between mb-5">
@@ -123,7 +208,10 @@ function Jobs() {
                 <div className="font-display text-2xl font-bold">{naira(j.budget)}</div>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); openJob(j); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openJob(j);
+                }}
                 className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-95 transition"
               >
                 <Lock className="h-3.5 w-3.5" /> Bind Escrow
@@ -144,7 +232,9 @@ function Jobs() {
               <div className="text-sm font-semibold">New {naira(5000)} job matches your area</div>
               <div className="text-xs text-muted-foreground">Generator Servicing · Sarah O. · 1.2km</div>
             </div>
-            <button onClick={() => setToast(false)} className="text-muted-foreground"><X className="h-4 w-4" /></button>
+            <button onClick={() => setToast(false)} className="text-muted-foreground">
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
