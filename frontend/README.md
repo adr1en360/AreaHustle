@@ -1,69 +1,65 @@
-# React + TypeScript + Vite
+# AreaHustle Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, high-performance web application built with **TanStack Start**, **React**, and **TypeScript**.
 
-Currently, two official plugins are available:
+## 🚀 Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework:** [TanStack Start](https://tanstack.com/router/latest/docs/framework/react/start/overview) (Full-stack React framework)
+- **Routing:** [TanStack Router](https://tanstack.com/router) (Type-safe file-based routing)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Linting:** ESLint with type-aware rules
 
-## Expanding the ESLint configuration
+## 📁 Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The project follows TanStack Start's file-based routing conventions located in `src/routes/`.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── components/     # Reusable UI components
+├── routes/         # File-based routes (The heart of the app)
+│   ├── __root.tsx  # The root layout/app shell
+│   ├── index.tsx   # Home page (/)
+│   └── ...         # Other routes
+├── styles/         # Global styles
+└── main.tsx        # Client entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ Routing Conventions
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+This project uses **TanStack Router**. Key conventions:
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `index.tsx` → `/`
+- `about.tsx` → `/about`
+- `users/$id.tsx` → `/users/:id` (Dynamic)
+- `_layout.tsx` → Layout route (uses `<Outlet />`)
+- `__root.tsx` → The mandatory global wrapper.
+
+> **Note:** `routeTree.gen.ts` is auto-generated. Do not edit it manually.
+
+## ⚡ Getting Started
+
+### Prerequisites
+
+- Node.js (Latest LTS recommended)
+- npm or pnpm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+Start the development server with HMR and route generation:
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
 ```
