@@ -8,14 +8,12 @@ import estate from "@/assets/estate.jpg";
 import h1 from "@/assets/hustler-1.jpg";
 import h2 from "@/assets/hustler-2.jpg";
 import h3 from "@/assets/hustler-3.jpg";
-import {
-  Mic, ArrowRight, Shield, Wallet, MapPin, Star, Sparkles, Zap, Lock, TrendingUp, Check,
-} from "lucide-react";
+import { Mic, ArrowRight, Shield, Wallet, MapPin, Star, Sparkles, Zap, Lock, TrendingUp, Check } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AreaHustle — Your Area. Your Hustle. Your Trust." },
+      { title: "AreaHustle - Your Area. Your Hustle. Your Trust." },
       { name: "description", content: "Voice-enabled hyper-local gig marketplace and behavioral credit engine for informal workers." },
     ],
   }),
@@ -40,7 +38,7 @@ function Landing() {
           <div className="absolute -top-40 -left-32 h-[480px] w-[480px] rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute -bottom-32 -right-32 h-[420px] w-[420px] rounded-full bg-voice/5 blur-3xl" />
         </div>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-12">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             <div className="lg:col-span-7 animate-fade-up">
               <div className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground mb-6 shadow-soft">
@@ -52,14 +50,17 @@ function Landing() {
                 Your Hustle. <span className="text-primary">Your Trust.</span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground max-w-xl">
-                The first gig marketplace that turns your everyday tasks into a verified
-                financial passport — voice-first, escrow-secured, locally trusted.
+                The first gig marketplace that turns your everyday tasks into a verified financial passport - voice-first, escrow-secured, locally
+                trusted.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   to={isLoggedIn ? "/post-task" : "/"}
                   onClick={(e) => {
-                    if (!isLoggedIn) { e.preventDefault(); openAuth("customer"); }
+                    if (!isLoggedIn) {
+                      e.preventDefault();
+                      openAuth("customer");
+                    }
                   }}
                   className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition shadow-soft"
                 >
@@ -78,12 +79,22 @@ function Landing() {
               <div className="mt-10 flex items-center gap-6">
                 <div className="flex -space-x-2">
                   {[h1, h2, h3].map((src, i) => (
-                    <img key={i} src={src} alt="" loading="lazy" width={40} height={40} className="h-10 w-10 rounded-full ring-2 ring-background object-cover" />
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full ring-2 ring-background object-cover"
+                    />
                   ))}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   <div className="flex items-center gap-1 text-foreground font-semibold">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                    ))}
                     <span className="ml-1">4.9</span>
                   </div>
                   Trusted by 12,000+ households across Lekki, Yaba & Ikeja
@@ -151,31 +162,39 @@ function Landing() {
       {/* LOGOS / TRUST STRIP */}
       <section className="border-y bg-card/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-xs uppercase tracking-widest text-muted-foreground">
-          <span>Powered by Aethex Voice</span><span>•</span>
-          <span>Gemini Intent Parsing</span><span>•</span>
-          <span>Paystack Escrow</span><span>•</span>
+          <span>Powered by Aethex Voice</span>
+          <span>•</span>
+          <span>Gemini Intent Parsing</span>
+          <span>•</span>
+          <span>Paystack Escrow</span>
+          <span>•</span>
           <span>Flutterwave Sweeps</span>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="max-w-2xl">
           <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-3">How it works</div>
-          <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">
-            From a spoken request to a paid hustler — in minutes.
-          </h2>
+          <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">From a spoken request to a paid hustler - in minutes.</h2>
         </div>
         <div className="mt-12 grid md:grid-cols-3 gap-5">
           {[
-            { icon: Mic, t: "Speak Your Task", d: "Tap once and describe what you need. Aethex transcribes; Gemini structures the brief.", c: "voice" },
+            {
+              icon: Mic,
+              t: "Speak Your Task",
+              d: "Tap once and describe what you need. Aethex transcribes; Gemini structures the brief.",
+              c: "voice",
+            },
             { icon: Shield, t: "Lock Escrow", d: "Funds are held safely until the job is verified complete. No upfront risk.", c: "primary" },
             { icon: Wallet, t: "Build Your Passport", d: "Every completed job grows your Trust Score and unlocks fairer micro-loans.", c: "success" },
           ].map((s, i) => (
             <div key={i} className="group rounded-3xl bg-card p-7 shadow-soft hover:shadow-elevated transition">
-              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-5 ${
-                s.c === "voice" ? "bg-voice/10 text-voice" : s.c === "primary" ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
-              }`}>
+              <div
+                className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-5 ${
+                  s.c === "voice" ? "bg-voice/10 text-voice" : s.c === "primary" ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
+                }`}
+              >
                 <s.icon className="h-5 w-5" />
               </div>
               <div className="text-xs text-muted-foreground mb-1">0{i + 1}</div>
@@ -187,9 +206,9 @@ function Landing() {
       </section>
 
       {/* EDITORIAL SPLIT */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-0 py-16">
         <div className="grid lg:grid-cols-2 gap-10 items-center">
-          <div className="relative rounded-[2rem] overflow-hidden shadow-elevated aspect-[4/5]">
+          <div className="relative rounded-[2rem] overflow-hidden shadow-elevated aspect-[1/1]">
             <img src={heroHustler} alt="Professional Nigerian artisan" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute bottom-5 left-5 right-5 rounded-2xl glass p-4">
               <div className="flex items-center gap-3">
@@ -204,12 +223,10 @@ function Landing() {
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Built for the informal economy</div>
-            <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-5">
-              A passport that travels with the work.
-            </h2>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-5">A passport that travels with the work.</h2>
             <p className="text-muted-foreground mb-6">
-              Bank statements ignore the hustle. AreaHustle counts every completed job, every five-star
-              review, every on-time delivery — and turns it into a credit footprint that lenders trust.
+              Bank statements ignore the hustle. AreaHustle counts every completed job, every five-star review, every on-time delivery - and turns it
+              into a credit footprint that lenders trust.
             </p>
             <ul className="space-y-3">
               {[
@@ -231,15 +248,13 @@ function Landing() {
       </section>
 
       {/* STATS / CITY */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="relative rounded-[2rem] overflow-hidden shadow-elevated">
           <img src={estate} alt="Modern Lagos estate" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/60 to-primary/20" />
           <div className="relative grid md:grid-cols-4 gap-6 p-8 sm:p-12 text-primary-foreground">
             <div className="md:col-span-2">
-              <h3 className="font-display text-4xl font-bold leading-tight">
-                A new financial fabric, woven one job at a time.
-              </h3>
+              <h3 className="font-display text-4xl font-bold leading-tight">A new financial fabric, woven one job at a time.</h3>
             </div>
             {[
               { v: "₦1.2B+", l: "Escrowed since launch" },
@@ -257,17 +272,18 @@ function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="rounded-[2rem] bg-card shadow-elevated p-10 sm:p-16 text-center">
           <Sparkles className="h-6 w-6 text-voice mx-auto mb-4" />
           <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-4 max-w-2xl mx-auto">
             Ready to turn your hustle into history?
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-            Join the marketplace that pays you fairly today — and finances you tomorrow.
-          </p>
+          <p className="text-muted-foreground max-w-xl mx-auto mb-8">Join the marketplace that pays you fairly today - and finances you tomorrow.</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <button onClick={() => openAuth("customer")} className="rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground">
+            <button
+              onClick={() => openAuth("customer")}
+              className="rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground"
+            >
               Post your first task
             </button>
             <button onClick={() => openAuth("hustler")} className="rounded-full border px-6 py-3.5 text-sm font-semibold">
@@ -277,8 +293,7 @@ function Landing() {
         </div>
       </section>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} role={role}
-        redirectTo={role === "customer" ? "/post-task" : "/jobs"} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} role={role} redirectTo={role === "customer" ? "/post-task" : "/jobs"} />
     </div>
   );
 }
@@ -297,8 +312,30 @@ function TrustDial({ value }: { value: number }) {
   return (
     <div className="relative flex items-center justify-center">
       <svg viewBox="0 0 120 120" className="h-32 w-32 -rotate-[135deg]">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" className="text-muted" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * 0.25} />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" className="text-primary transition-all duration-[1500ms] ease-out" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          className="text-muted"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * 0.25}
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          className="text-primary transition-all duration-[1500ms] ease-out"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={off}
+        />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="font-display text-2xl font-bold tabular-nums">{shown}</div>
