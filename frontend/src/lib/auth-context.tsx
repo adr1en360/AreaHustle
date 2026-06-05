@@ -1,57 +1,36 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { apiLogin, apiRegister, setToken, removeToken, getToken, apiGetMe, apiCreateTask, apiGetTasks } from "./api";
-import { toast } from "sonner";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export type Role = "customer" | "hustler" | null;
-export type JobState = "pending" | "accepted" | "completed" | "closed";
+export type JobState = "pending" | "accepted" | "awaiting_confirmation" | "done";
 
 export interface Job {
   id: string;
-  title: string;
+  category: string;
   budget: number;
+  location: string;
+  description: string;
   state: JobState;
-  area: string;
-  customer: string;
-  hustler?: string;
-  cat: string;
-  isNew?: boolean;
-}
-
-export interface User {
-  name: string;
-  trustScore: number;
-  walletBalance: number;
-}
-
-export interface PendingSweep {
-  title: string;
-  gross: number;
-  sweep: number;
-  net: number;
-  customer: string;
+  editsRemaining: number;
+  assignedHustler?: string;
+  distance?: string;
 }
 
 interface AuthContextType {
   isLoggedIn: boolean;
   userRole: Role;
-  user: User;
-  customerWallet: number;
-  activeJobs: Job[];
-  pendingSweep: PendingSweep | null;
-  language: string;
-  areas: string[];
-  extraJobs: Job[];
-  login: (role: Role, email?: string, password?: string) => Promise<void>;
+  login: (email: string, role?: Role) => void;
+  register: (role: Role, data: any) => void;
   logout: () => void;
-  setLanguage: (l: string) => void;
-  setAreas: (a: string[]) => void;
-  consumePendingSweep: () => void;
-  topUp: (amount: number) => void;
-  withdraw: (amount: number) => void;
-  postJob: (job: Omit<Job, "id" | "state">) => void;
+  walletBalance: number;
+  trustScore: number;
+  jobs: Job[];
+  postJob: (job: Omit<Job, "id" | "state" | "editsRemaining">) => void;
+  updateJob: (id: string, updates: Partial<Job>) => void;
   acceptJob: (id: string) => void;
   markJobDone: (id: string) => void;
-  confirmJob: (id: string) => void;
+  confirmJobDone: (id: string) => void;
+  toast: { show: boolean; title: string; message: string; type?: "success" | "sweep" } | null;
+  hideToast: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,134 +38,124 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<Role>(null);
-  const [user, setUser] = useState<User>({ name: "Tunde A.", trustScore: 820, walletBalance: 12000 });
-  const [customerWallet, setCustomerWallet] = useState(50000);
-  const [language, setLanguage] = useState("English");
-  const [areas, setAreas] = useState<string[]>([]);
-  const [pendingSweep, setPendingSweep] = useState<PendingSweep | null>(null);
+  const [walletBalance, setWalletBalance] = useState(12500);
+  const [trustScore, setTrustScore] = useState(820);
+  const [toast, setToast] = useState<AuthContextType["toast"]>(null);
 
-  const [activeJobs, setActiveJobs] = useState<Job[]>([
+  const [jobs, setJobs] = useState<Job[]>([
     {
-      id: "j1",
-      title: "Generator Servicing",
+      id: "1",
+      category: "Generator Servicing",
       budget: 8000,
-      state: "completed",
-      area: "Lekki Phase 1",
-      customer: "Sarah O.",
-      cat: "Repairs",
-      hustler: "Tunde A.",
+      location: "Lekki Phase 1",
+      description: "My Mikano generator is making a loud noise and shutting down after 10 mins. Needs urgent check.",
+      state: "pending",
+      editsRemaining: 3,
+      distance: "2.5 km",
     },
     {
-      id: "j2",
-      title: "Deep Clean - 3BR Apt",
-      budget: 22000,
+      id: "2",
+      category: "Plumbing",
+      budget: 15000,
+      location: "Yaba",
+      description: "The kitchen sink pipe is leaking heavily into the cabinet underneath.",
       state: "accepted",
-      area: "Ikoyi",
-      customer: "Mr. Lawal",
-      cat: "Cleaning",
-      hustler: "Tunde A.",
+      editsRemaining: 0,
+      assignedHustler: "Tunde A.",
+      distance: "5.1 km",
     },
-    { id: "j3", title: "Errand - Pickup at Shoprite", budget: 3500, state: "pending", area: "Yaba", customer: "Chuka N.", cat: "Errands" },
   ]);
 
-  // Persist session if token exists
-  useEffect(() => {
-    if (getToken()) {
-      apiGetMe()
-        .then((data) => {
-          setIsLoggedIn(true);
-          setUserRole(data.role as Role);
-          setUser((prev) => ({ ...prev, name: data.name }));
-        })
-        .catch(() => {
-          removeToken();
-        });
-    }
-  }, []);
+  const showToast = (title: string, message: string, type: "success" | "sweep" = "success") => {
+    setToast({ show: true, title, message, type });
+    setTimeout(() => setToast(null), 7000);
+  };
 
-  const login = async (role: Role, email = "demo@areahustle.test", password = "password") => {
-    try {
-      // Try to login via API
-      const res = await apiLogin(email, password);
-      setToken(res.access_token);
-      const me = await apiGetMe();
-      setUser((prev) => ({ ...prev, name: me.name }));
-    } catch (error) {
-      console.warn("API Login Failed, using mock local state.");
-      toast.info("Backend unreachable. Using local mock state.");
-    } finally {
-      setIsLoggedIn(true);
-      setUserRole(role);
-      setUser((prev) => ({ ...prev, name: role === "customer" ? "Sarah O." : "Tunde A." }));
-    }
+  const login = (email: string, role?: Role) => {
+    setIsLoggedIn(true);
+    setUserRole(role || "customer");
+  };
+
+  const register = (role: Role, data: any) => {
+    setIsLoggedIn(true);
+    setUserRole(role);
   };
 
   const logout = () => {
-    removeToken();
     setIsLoggedIn(false);
     setUserRole(null);
   };
 
-  const topUp = (amount: number) => setCustomerWallet((prev) => prev + amount);
-  const withdraw = (amount: number) => setUser((prev) => ({ ...prev, walletBalance: Math.max(0, prev.walletBalance - amount) }));
-
-  const postJob = async (job: Omit<Job, "id" | "state">) => {
-    try {
-      await apiCreateTask({ category: job.cat, description: job.title, budget: job.budget, neighbourhood: job.area });
-    } catch (e) {
-      // ignore for fallback
-    }
-    const newJob: Job = { ...job, id: Math.random().toString(36).substring(2, 9), state: "pending", isNew: true };
-    setActiveJobs((prev) => [newJob, ...prev]);
-    setCustomerWallet((prev) => prev - job.budget);
+  const postJob = (job: Omit<Job, "id" | "state" | "editsRemaining">) => {
+    const newJob: Job = { ...job, id: Math.random().toString(36).substring(2, 9), state: "pending", editsRemaining: 3, distance: "0.0 km" };
+    setJobs([newJob, ...jobs]);
   };
 
-  const acceptJob = (id: string) => setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "accepted", hustler: user.name } : j)));
-  const markJobDone = (id: string) => setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "completed" } : j)));
-  const confirmJob = (id: string) => {
-    const job = activeJobs.find((j) => j.id === id);
+  const updateJob = (id: string, updates: Partial<Job>) => {
+    setJobs(
+      jobs.map((j) =>
+        j.id === id ? { ...j, ...updates, editsRemaining: updates.description && j.editsRemaining > 0 ? j.editsRemaining - 1 : j.editsRemaining } : j,
+      ),
+    );
+  };
+
+  const acceptJob = (id: string) => setJobs(jobs.map((j) => (j.id === id ? { ...j, state: "accepted", assignedHustler: "You" } : j)));
+  const markJobDone = (id: string) => setJobs(jobs.map((j) => (j.id === id ? { ...j, state: "awaiting_confirmation" } : j)));
+
+  const confirmJobDone = (id: string) => {
+    const job = jobs.find((j) => j.id === id);
     if (!job) return;
-    setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "closed" } : j)));
-    const sweepAmt = job.budget * 0.2; // 20% auto loan sweep
-    const net = job.budget - sweepAmt;
-    setPendingSweep({ title: job.title, gross: job.budget, sweep: sweepAmt, net, customer: job.customer });
-    setUser((prev) => ({ ...prev, walletBalance: prev.walletBalance + net, trustScore: Math.min(1000, prev.trustScore + 15) }));
+    setJobs(jobs.map((j) => (j.id === id ? { ...j, state: "done" } : j)));
+
+    // Trigger Escrow Sweep & Financial Passport Logic globally
+    const payout = job.budget;
+    const loanSweep = payout * 0.2; // 20% mock automated sweep
+    const net = payout - loanSweep;
+
+    setTimeout(() => {
+      showToast(
+        "Escrow Unlocked!",
+        `Job: +₦${payout.toLocaleString()}  |  Loan Sweep: -₦${loanSweep.toLocaleString()}  |  Wallet: +₦${net.toLocaleString()}`,
+        "sweep",
+      );
+      setWalletBalance((prev) => prev + net);
+      setTrustScore((prev) => prev + 15);
+    }, 800);
   };
-  const consumePendingSweep = () => setPendingSweep(null);
-  const extraJobs = activeJobs.filter((j) => j.state === "pending");
 
   return (
     <AuthContext.Provider
       value={{
         isLoggedIn,
         userRole,
-        user,
-        customerWallet,
-        activeJobs,
-        pendingSweep,
-        language,
-        areas,
-        extraJobs,
         login,
+        register,
         logout,
-        setLanguage,
-        setAreas,
-        consumePendingSweep,
-        topUp,
-        withdraw,
+        walletBalance,
+        trustScore,
+        jobs,
         postJob,
+        updateJob,
         acceptJob,
         markJobDone,
-        confirmJob,
+        confirmJobDone,
+        toast,
+        hideToast: () => setToast(null),
       }}
     >
       {children}
+      {toast && toast.show && (
+        <div className="fixed bottom-6 right-6 z-[9999] bg-white shadow-elevated rounded-2xl p-5 border-l-[6px] border-[#10B981] animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-sm">
+          <h4 className="font-display font-bold text-[#0D3B2E] text-lg">{toast.title}</h4>
+          <p className="text-sm font-semibold text-muted-foreground mt-1 whitespace-pre-wrap">{toast.message}</p>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error("useAuth must be used within AuthProvider");
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
-}
+};

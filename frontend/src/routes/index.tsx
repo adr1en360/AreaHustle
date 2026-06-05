@@ -23,15 +23,17 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { isLoggedIn } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
-  const [role, setRole] = useState<"customer" | "hustler">("customer");
+  const [authRole, setAuthRole] = useState<"customer" | "hustler">("customer");
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
-  const openAuth = (r: "customer" | "hustler") => {
-    setRole(r);
+  const openAuth = (r: "customer" | "hustler", m: "login" | "register" = "register") => {
+    setAuthRole(r);
+    setAuthMode(m);
     setAuthOpen(true);
   };
 
   return (
-    <div>
+    <div className="bg-[#F9F9F8] min-h-screen font-sans text-foreground">
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
@@ -59,7 +61,7 @@ function Landing() {
                   onClick={(e) => {
                     if (!isLoggedIn) {
                       e.preventDefault();
-                      openAuth("customer");
+                      openAuth("customer", "register");
                     }
                   }}
                   className="group inline-flex items-center justify-center w-full sm:w-auto gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition shadow-soft"
@@ -69,7 +71,7 @@ function Landing() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <button
-                  onClick={() => openAuth("hustler")}
+                  onClick={() => openAuth("hustler", "register")}
                   className="inline-flex items-center justify-center w-full sm:w-auto gap-2 rounded-full border bg-card px-5 py-3.5 text-sm font-semibold hover:bg-muted transition"
                 >
                   Join as a Hustler
@@ -274,20 +276,19 @@ function Landing() {
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="rounded-[2rem] bg-card shadow-elevated p-10 sm:p-16 text-center">
-          <Sparkles className="h-6 w-6 text-voice mx-auto mb-4" />
           <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight mb-4 max-w-2xl mx-auto">
             Ready to turn your hustle into history?
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">Join the marketplace that pays you fairly today - and finances you tomorrow.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              onClick={() => openAuth("customer")}
+              onClick={() => openAuth("customer", "register")}
               className="rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition"
             >
               Post your first task
             </button>
             <button
-              onClick={() => openAuth("hustler")}
+              onClick={() => openAuth("hustler", "register")}
               className="rounded-full border bg-card px-6 py-3.5 text-sm font-semibold hover:bg-muted transition"
             >
               Become a Hustler
@@ -296,7 +297,7 @@ function Landing() {
         </div>
       </section>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} role={role} redirectTo={role === "customer" ? "/post-task" : "/jobs"} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialRole={authRole} initialMode={authMode} />
     </div>
   );
 }

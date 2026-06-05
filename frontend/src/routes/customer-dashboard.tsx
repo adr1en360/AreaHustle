@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { naira } from "@/lib/format";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { Plus, CheckCircle, Clock, MapPin, Phone } from "lucide-react";
+import { Plus, CheckCircle, Clock, MapPin, Phone, Edit, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/customer-dashboard")({
@@ -11,22 +11,22 @@ export const Route = createFileRoute("/customer-dashboard")({
 });
 
 function CustomerDashboard() {
-  const { isLoggedIn, userRole, customerWallet, activeJobs, confirmJob, topUp } = useAuth();
+  const { isLoggedIn, userRole, walletBalance, jobs, updateJob, confirmJobDone } = useAuth();
   const nav = useNavigate();
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("");
+  const [editingJob, setEditingJob] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn || userRole !== "customer") nav({ to: "/" });
   }, [isLoggedIn, userRole, nav]);
 
-  const myJobs = activeJobs.filter((j) => j.customer === "Sarah O.");
+  const myJobs = jobs || [];
 
   const handleTopUp = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseInt(topUpAmount);
     if (amt && amt > 0) {
-      topUp(amt);
       toast.success(`Successfully topped up ${naira(amt)}`);
       setTopUpOpen(false);
       setTopUpAmount("");
@@ -34,8 +34,17 @@ function CustomerDashboard() {
   };
 
   const handleConfirm = (id: string) => {
-    confirmJob(id);
+    confirmJobDone(id);
     toast.success("Job confirmed! Escrow released to Hustler.");
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingJob && editingJob.editsRemaining > 0) {
+      updateJob(editingJob.id, { description: editingJob.description, budget: editingJob.budget, title: editingJob.title } as any);
+      setEditingJob(null);
+      toast.success(`Job updated. ${editingJob.editsRemaining - 1} edits remaining.`);
+    }
   };
 
   return (
@@ -58,7 +67,7 @@ function CustomerDashboard() {
           <div>
             <div className="text-xs opacity-70 uppercase tracking-widest">Wallet Balance</div>
             <div className="font-display text-4xl font-bold mt-2 tabular-nums">
-              ₦<AnimatedNumber value={customerWallet} />
+              ₦<AnimatedNumber value={walletBalance} />
             </div>
           </div>
           <button
@@ -94,35 +103,47 @@ function CustomerDashboard() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span
-                    className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full ${job.state === "pending" ? "bg-muted text-muted-foreground" : job.state === "accepted" ? "bg-primary/10 text-primary" : job.state === "completed" ? "bg-orange-500/10 text-orange-600" : "bg-success/10 text-success"}`}
+                    className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full ${job.state === "pending" ? "bg-muted text-muted-foreground" : job.state === "accepted" ? "bg-primary/10 text-primary" : job.state === "awaiting_confirmation" ? "bg-orange-500/10 text-orange-600" : "bg-success/10 text-success"}`}
                   >
-                    {job.state}
+                    {job.state === "awaiting_confirmation" ? "completed" : job.state}
                   </span>
-                  <span className="text-xs text-muted-foreground">{job.cat}</span>
+                  <span className="text-xs text-muted-foreground">{job.category}</span>
                 </div>
                 <h3 className="font-display text-lg font-bold">{job.title}</h3>
+                {job.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{job.description}</p>}
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {job.area}
+                    <MapPin className="h-3 w-3" /> {job.location}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" /> {naira(job.budget)} in Escrow
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {job.state === "pending" && <div className="text-sm text-muted-foreground italic sm:px-4">Waiting for Hustler...</div>}
+              <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
+                {job.state === "pending" && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground italic">Waiting for Hustler...</span>
+                    <button
+                      onClick={() => setEditingJob(job)}
+                      disabled={job.editsRemaining <= 0}
+                      className="flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Edit className="h-3.5 w-3.5" /> Edit ({job.editsRemaining} left)
+                    </button>
+                  </div>
+                )}
                 {job.state === "accepted" && (
                   <div className="flex items-center gap-3">
                     <div className="text-sm">
-                      Assigned: <span className="font-semibold">{job.hustler}</span>
+                      Assigned: <span className="font-semibold">{job.assignedHustler || "A Hustler"}</span>
                     </div>
                     <button className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
                       <Phone className="h-4 w-4" />
                     </button>
                   </div>
                 )}
-                {job.state === "completed" && (
+                {job.state === "awaiting_confirmation" && (
                   <button
                     onClick={() => handleConfirm(job.id)}
                     className="w-full sm:w-auto justify-center rounded-full bg-[#183620] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-soft animate-pulse"
@@ -130,7 +151,7 @@ function CustomerDashboard() {
                     <CheckCircle className="h-4 w-4" /> Confirm & Release Escrow
                   </button>
                 )}
-                {job.state === "closed" && (
+                {job.state === "done" && (
                   <div className="text-sm text-success font-semibold sm:px-4 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" /> Job Done
                   </div>
@@ -166,6 +187,52 @@ function CustomerDashboard() {
                   Paystack Pay
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-fade-up">
+          <div className="relative w-full max-w-md rounded-3xl bg-card border shadow-elevated p-8">
+            <button onClick={() => setEditingJob(null)} className="absolute right-6 top-6 text-muted-foreground hover:text-foreground">
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="font-display text-xl font-bold mb-4">Edit Task</h2>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title</label>
+                <input
+                  type="text"
+                  value={editingJob.title || ""}
+                  onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
+                  required
+                  className="mt-1 w-full rounded-xl border bg-muted/30 px-4 py-3 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
+                <textarea
+                  value={editingJob.description}
+                  onChange={(e) => setEditingJob({ ...editingJob, description: e.target.value })}
+                  required
+                  rows={3}
+                  className="mt-1 w-full rounded-xl border bg-muted/30 px-4 py-3 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Budget (₦)</label>
+                <input
+                  type="number"
+                  value={editingJob.budget}
+                  onChange={(e) => setEditingJob({ ...editingJob, budget: Number(e.target.value) })}
+                  required
+                  className="mt-1 w-full rounded-xl border bg-muted/30 px-4 py-3 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <button type="submit" className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold text-primary-foreground mt-2">
+                Save Changes
+              </button>
             </form>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { naira } from "@/lib/format";
-import { Mic, Lock, MapPin, Tag, Wallet, Sparkles, Check } from "lucide-react";
+import { Mic, Lock, MapPin, Tag, Wallet, Sparkles, Check, Keyboard } from "lucide-react";
 
 export const Route = createFileRoute("/post-task")({
   head: () => ({ meta: [{ title: "Post a Task · AreaHustle" }] }),
@@ -15,6 +15,12 @@ function PostTask() {
   const { isLoggedIn, postJob } = useAuth();
   const nav = useNavigate();
   const [phase, setPhase] = useState<Phase>("idle");
+  const [manualMode, setManualMode] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [budget, setBudget] = useState("");
+  const [area, setArea] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn) nav({ to: "/" });
@@ -26,6 +32,12 @@ function PostTask() {
     setTimeout(() => setPhase("result"), 3300);
   };
 
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    postJob({ title, description, budget: Number(budget), location: area, category: "General" } as any);
+    nav({ to: "/customer-dashboard" });
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
       <div className="text-center mb-10">
@@ -35,89 +47,170 @@ function PostTask() {
       </div>
 
       <div className="rounded-3xl bg-card border shadow-elevated p-8 sm:p-12">
-        {/* Voice surface */}
-        <div className="flex flex-col items-center text-center">
-          <button
-            onClick={start}
-            disabled={phase !== "idle" && phase !== "locked"}
-            className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-voice text-voice-foreground shadow-elevated flex items-center justify-center hover:scale-105 transition disabled:opacity-90"
-          >
-            <Mic className="h-8 w-8 sm:h-10 sm:w-10" />
-            {(phase === "recording" || phase === "processing") && (
-              <>
-                <span className="absolute inset-0 rounded-full bg-voice animate-voice-pulse" />
-                <span className="absolute inset-0 rounded-full bg-voice animate-voice-pulse" style={{ animationDelay: "0.6s" }} />
-              </>
-            )}
-          </button>
-          <div className="mt-6 font-display text-xl font-semibold">
-            {phase === "idle" && "Speak Task"}
-            {phase === "recording" && "Listening…"}
-            {phase === "processing" && "Parsing intent…"}
-            {phase === "result" && "Here's your task"}
-            {phase === "locked" && "Escrow locked"}
-          </div>
-          <div className="text-sm text-muted-foreground mt-1 max-w-sm">
-            {phase === "idle" && 'Try: "I need someone to service my generator in Lekki for ₦8,000".'}
-            {phase === "recording" && "Aethex Speech-to-Text active"}
-            {phase === "processing" && "Gemini structuring fields"}
-            {phase === "result" && "Review and lock escrow to publish to nearby hustlers."}
-            {phase === "locked" && "Hustlers in your area have been notified."}
-          </div>
-        </div>
-
-        {/* Waveform */}
-        {(phase === "recording" || phase === "processing") && (
-          <div className="mt-10 flex items-end justify-center gap-1.5 h-20">
-            {Array.from({ length: 48 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-1 rounded-full bg-voice/70 animate-wave"
-                style={{
-                  height: `${10 + Math.abs(Math.sin(i / 2.5)) * 80}%`,
-                  animationDelay: `${i * 40}ms`,
-                  animationDuration: `${0.7 + (i % 4) * 0.1}s`,
-                }}
+        {manualMode ? (
+          <form onSubmit={handleManualSubmit} className="space-y-5 animate-in fade-in slide-in-from-bottom-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Task Title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                placeholder="e.g. Fix my generator"
+                className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
               />
-            ))}
-          </div>
-        )}
-
-        {(phase === "result" || phase === "locked") && (
-          <div className="mt-10 animate-fade-up">
-            <div className="rounded-2xl border bg-muted/40 p-6">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                <Sparkles className="h-3.5 w-3.5 text-voice" /> Structured by Gemini
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detailed Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                placeholder="Explain the job so the hustler understands it better..."
+                rows={4}
+                className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Budget (₦)</label>
+                <input
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  required
+                  placeholder="e.g. 5000"
+                  className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+                />
               </div>
-              <div className="grid sm:grid-cols-3 gap-4">
-                <Field icon={Tag} label="Category" value="Generator Servicing" />
-                <Field icon={Wallet} label="Budget" value={naira(8000)} />
-                <Field icon={MapPin} label="Location" value="Lekki Phase 1" />
-              </div>
-              <div className="mt-5 rounded-xl bg-card border p-4 text-sm text-muted-foreground italic">
-                "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira."
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</label>
+                <input
+                  type="text"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  required
+                  placeholder="e.g. Lekki Phase 1"
+                  className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+                />
               </div>
             </div>
-            <button
-              onClick={() => {
-                setPhase("locked");
-                postJob({ title: "Generator Servicing", budget: 8000, area: "Lekki Phase 1", customer: "Sarah O.", cat: "Repairs" });
-                setTimeout(() => nav({ to: "/customer-dashboard" }), 1400);
-              }}
-              disabled={phase === "locked"}
-              className="mt-6 w-full rounded-2xl bg-primary py-4 text-sm font-semibold text-primary-foreground hover:opacity-95 transition flex items-center justify-center gap-2 disabled:opacity-90"
-            >
-              {phase === "locked" ? (
-                <>
-                  <Check className="h-4 w-4" /> Locked · Releasing to feed
-                </>
-              ) : (
-                <>
-                  <Lock className="h-4 w-4" /> Lock Escrow to Confirm
-                </>
-              )}
-            </button>
-          </div>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setManualMode(false)}
+                className="flex-1 rounded-full border py-3.5 text-sm font-semibold hover:bg-muted transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-full bg-primary text-primary-foreground py-3.5 text-sm font-semibold hover:opacity-90 transition"
+              >
+                Post Job
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setManualMode(true)}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition"
+              >
+                <Keyboard className="h-4 w-4" /> Type it manually
+              </button>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <button
+                onClick={start}
+                disabled={phase !== "idle" && phase !== "locked"}
+                className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-voice text-voice-foreground shadow-elevated flex items-center justify-center hover:scale-105 transition disabled:opacity-90"
+              >
+                <Mic className="h-8 w-8 sm:h-10 sm:w-10" />
+                {(phase === "recording" || phase === "processing") && (
+                  <>
+                    <span className="absolute inset-0 rounded-full bg-voice animate-voice-pulse" />
+                    <span className="absolute inset-0 rounded-full bg-voice animate-voice-pulse" style={{ animationDelay: "0.6s" }} />
+                  </>
+                )}
+              </button>
+              <div className="mt-6 font-display text-xl font-semibold">
+                {phase === "idle" && "Speak Task"}
+                {phase === "recording" && "Listening…"}
+                {phase === "processing" && "Parsing intent…"}
+                {phase === "result" && "Here's your task"}
+                {phase === "locked" && "Escrow locked"}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1 max-w-sm">
+                {phase === "idle" && 'Try: "I need someone to service my generator in Lekki for ₦8,000".'}
+                {phase === "recording" && "Aethex Speech-to-Text active"}
+                {phase === "processing" && "Gemini structuring fields"}
+                {phase === "result" && "Review and lock escrow to publish to nearby hustlers."}
+                {phase === "locked" && "Hustlers in your area have been notified."}
+              </div>
+            </div>
+
+            {/* Waveform */}
+            {(phase === "recording" || phase === "processing") && (
+              <div className="mt-10 flex items-end justify-center gap-1.5 h-20">
+                {Array.from({ length: 48 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1 rounded-full bg-voice/70 animate-wave"
+                    style={{
+                      height: `${10 + Math.abs(Math.sin(i / 2.5)) * 80}%`,
+                      animationDelay: `${i * 40}ms`,
+                      animationDuration: `${0.7 + (i % 4) * 0.1}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {(phase === "result" || phase === "locked") && (
+              <div className="mt-10 animate-fade-up">
+                <div className="rounded-2xl border bg-muted/40 p-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                    <Sparkles className="h-3.5 w-3.5 text-voice" /> Structured by Gemini
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <Field icon={Tag} label="Category" value="Generator Servicing" />
+                    <Field icon={Wallet} label="Budget" value={naira(8000)} />
+                    <Field icon={MapPin} label="Location" value="Lekki Phase 1" />
+                  </div>
+                  <div className="mt-5 rounded-xl bg-card border p-4 text-sm text-muted-foreground italic">
+                    "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira."
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setPhase("locked");
+                    postJob({
+                      title: "Generator Servicing",
+                      description: "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira.",
+                      budget: 8000,
+                      location: "Lekki Phase 1",
+                      category: "Repairs",
+                    } as any);
+                    setTimeout(() => nav({ to: "/customer-dashboard" }), 1400);
+                  }}
+                  disabled={phase === "locked"}
+                  className="mt-6 w-full rounded-2xl bg-primary py-4 text-sm font-semibold text-primary-foreground hover:opacity-95 transition flex items-center justify-center gap-2 disabled:opacity-90"
+                >
+                  {phase === "locked" ? (
+                    <>
+                      <Check className="h-4 w-4" /> Locked · Releasing to feed
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" /> Lock Escrow to Confirm
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
