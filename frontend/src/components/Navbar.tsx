@@ -1,181 +1,140 @@
-import { useState } from "react";
-import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import React, { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { AuthModal } from "./AuthModal";
+import { naira } from "@/lib/format";
+import { Wallet, LogOut, Shield } from "lucide-react";
 import { AnimatedNumber } from "./AnimatedNumber";
-import { Mic, ChevronDown, LogOut, Menu, X, Wallet } from "lucide-react";
-
-const NAV = [
-  { to: "/jobs", label: "Find a Hustler" },
-  { to: "/jobs", label: "Browse Jobs" },
-  { to: "/passport", label: "Financial Passport" },
-];
+import { AuthModal } from "./AuthModal";
+import { toast } from "sonner";
 
 export function Navbar() {
-  const { isLoggedIn, user, logout, setVoiceOpen } = useAuth();
+  const { isLoggedIn, userRole, customerWallet, user, logout, withdraw } = useAuth();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
-  const [role, setRole] = useState<"customer" | "hustler">("customer");
-  const [menu, setMenu] = useState(false);
-  const [dropdown, setDropdown] = useState(false);
-  const navigate = useNavigate();
-  const path = useRouterState({ select: (s) => s.location.pathname });
+  const [authRole, setAuthRole] = useState<"customer" | "hustler">("customer");
+
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseInt(withdrawAmount);
+    if (amt && amt <= user.walletBalance) {
+      withdraw(amt);
+      toast.success(`Successfully withdrew ${naira(amt)} to bank.`);
+      setWithdrawOpen(false);
+      setWithdrawAmount("");
+    } else {
+      toast.error("Invalid amount or insufficient balance.");
+    }
+  };
 
   const openAuth = (r: "customer" | "hustler") => {
-    setRole(r);
+    setAuthRole(r);
     setAuthOpen(true);
   };
 
   return (
     <>
-      <header className="sticky top-0 z-40 glass border-b border-border/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-sm">A</span>
-              </div>
-              <span className="font-display text-xl font-bold tracking-tight">AreaHustle</span>
-            </Link>
+      <nav className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="font-display text-xl font-bold tracking-tight">
+            AreaHustle.
+          </Link>
 
-            <nav className="hidden md:flex items-center gap-1">
-              {NAV.map((n) => {
-                const active = path === n.to;
-                return (
-                  <Link
-                    key={n.label}
-                    to={n.to}
-                    className={`px-3.5 py-2 rounded-full text-sm font-medium transition ${
-                      active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {n.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="hidden md:flex items-center gap-2">
-              {isLoggedIn ? (
+          {isLoggedIn ? (
+            <div className="flex items-center gap-4 sm:gap-6">
+              {userRole === "customer" ? (
                 <>
-                  <button
-                    onClick={() => setVoiceOpen(true)}
-                    className="flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm font-medium hover:bg-accent transition"
-                    title="Voice Assistant"
-                  >
-                    <Mic className="h-4 w-4 text-voice" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-voice animate-pulse" />
-                  </button>
-                  <div className="flex items-center gap-2 rounded-full bg-muted px-3.5 py-2 text-sm">
-                    <Wallet className="h-4 w-4 text-primary" />
-                    <span className="font-semibold tabular-nums">
-                      ₦<AnimatedNumber value={user.walletBalance} />
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setDropdown((s) => !s)}
-                      className="flex items-center gap-1.5 rounded-full hover:bg-muted pl-1 pr-2 py-1 transition"
-                    >
-                      <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
-                        {user.avatar}
-                      </div>
-                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    {dropdown && (
-                      <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-card shadow-elevated border p-2 animate-scale-in">
-                        <div className="px-3 py-2 text-sm">
-                          <div className="font-semibold">{user.name}</div>
-                          <div className="text-xs text-muted-foreground">Trust Score · {user.trustScore}</div>
-                        </div>
-                        <button
-                          onClick={() => {
-                            logout();
-                            setDropdown(false);
-                            navigate({ to: "/" });
-                          }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-muted text-left"
-                        >
-                          <LogOut className="h-4 w-4" /> Log Out
-                        </button>
-                      </div>
-                    )}
+                  <Link to="/customer-dashboard" className="text-sm font-medium hover:text-primary transition">
+                    Dashboard
+                  </Link>
+                  <Link to="/post-task" className="text-sm font-medium hover:text-primary transition hidden sm:block">
+                    Post Task
+                  </Link>
+                  <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+                    <Wallet className="h-4 w-4" />
+                    {naira(customerWallet)}
                   </div>
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => openAuth("customer")}
-                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition"
-                  >
-                    Log in
-                  </button>
-                  <button
-                    onClick={() => openAuth("hustler")}
-                    className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95 transition"
-                  >
-                    Join as Hustler
-                  </button>
+                  <Link to="/jobs" className="text-sm font-medium hover:text-primary transition">
+                    Job Market
+                  </Link>
+                  <Link to="/passport" className="text-sm font-medium hover:text-primary transition hidden sm:block">
+                    Passport
+                  </Link>
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-1 text-sm font-medium text-muted-foreground" title="Trust Score">
+                      <Shield className="h-4 w-4 text-success" /> {user.trustScore}
+                    </div>
+                    <button
+                      onClick={() => setWithdrawOpen(true)}
+                      className="flex items-center gap-2 rounded-full bg-primary/10 hover:bg-primary/20 transition px-3 py-1.5 text-sm font-semibold text-primary"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      <AnimatedNumber value={user.walletBalance} />
+                    </button>
+                  </div>
                 </>
               )}
+              <button onClick={() => logout()} className="text-muted-foreground hover:text-foreground transition">
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-
-            <button className="md:hidden p-2" onClick={() => setMenu((s) => !s)}>
-              {menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-
-          {menu && (
-            <div className="md:hidden py-4 space-y-1 border-t animate-fade-up">
-              {NAV.map((n) => (
-                <Link
-                  key={n.label}
-                  to={n.to}
-                  onClick={() => setMenu(false)}
-                  className="block px-3 py-2 rounded-xl text-sm hover:bg-muted"
-                >
-                  {n.label}
-                </Link>
-              ))}
-              <div className="pt-2 flex gap-2">
-                {isLoggedIn ? (
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMenu(false);
-                    }}
-                    className="flex-1 rounded-xl border py-2.5 text-sm"
-                  >
-                    Log Out
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        openAuth("customer");
-                        setMenu(false);
-                      }}
-                      className="flex-1 rounded-xl border py-2.5 text-sm"
-                    >
-                      Log in
-                    </button>
-                    <button
-                      onClick={() => {
-                        openAuth("hustler");
-                        setMenu(false);
-                      }}
-                      className="flex-1 rounded-xl bg-primary py-2.5 text-sm text-primary-foreground"
-                    >
-                      Join as Hustler
-                    </button>
-                  </>
-                )}
-              </div>
+          ) : (
+            <div className="flex items-center gap-3 sm:gap-4">
+              <button onClick={() => openAuth("customer")} className="text-sm font-medium hover:text-primary transition">
+                Hire a Hustler
+              </button>
+              <button
+                onClick={() => openAuth("hustler")}
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-95 transition"
+              >
+                Join
+              </button>
             </div>
           )}
         </div>
-      </header>
+      </nav>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} role={role} />
+      {withdrawOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-fade-up">
+          <div className="relative w-full max-w-sm rounded-3xl bg-card border shadow-elevated p-8">
+            <h2 className="font-display text-xl font-bold mb-2">Withdraw Funds</h2>
+            <p className="text-xs text-muted-foreground mb-4">Available balance: {naira(user.walletBalance)}</p>
+            <form onSubmit={handleWithdraw}>
+              <input
+                type="number"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="Amount"
+                max={user.walletBalance}
+                className="w-full rounded-2xl border bg-muted/30 px-4 py-3 text-lg font-semibold mb-4 outline-none focus:border-primary"
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setWithdrawOpen(false)} className="flex-1 rounded-full border py-3 text-sm font-semibold">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!withdrawAmount}
+                  className="flex-1 rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  Withdraw
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        role={authRole}
+        redirectTo={authRole === "customer" ? "/customer-dashboard" : "/jobs"}
+      />
     </>
   );
 }

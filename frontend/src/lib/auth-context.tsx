@@ -1,137 +1,192 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { apiLogin, apiRegister, setToken, removeToken, getToken, apiGetMe, apiCreateTask, apiGetTasks } from "./api";
+import { toast } from "sonner";
 
-export type UserRole = "customer" | "hustler";
+export type Role = "customer" | "hustler" | null;
+export type JobState = "pending" | "accepted" | "completed" | "closed";
 
-export interface PostedJob {
-  id: number;
+export interface Job {
+  id: string;
   title: string;
-  area: string;
-  dist: string;
   budget: number;
-  rating: number;
+  state: JobState;
+  area: string;
   customer: string;
+  hustler?: string;
   cat: string;
-  urgent?: boolean;
-  posted: string;
   isNew?: boolean;
 }
 
+export interface User {
+  name: string;
+  trustScore: number;
+  walletBalance: number;
+}
+
 export interface PendingSweep {
-  id: number;
+  title: string;
   gross: number;
   sweep: number;
   net: number;
-  title: string;
   customer: string;
-  trustBefore: number;
-  trustAfter: number;
 }
 
-interface AuthState {
+interface AuthContextType {
   isLoggedIn: boolean;
-  userRole: UserRole;
-  user: { name: string; avatar: string; walletBalance: number; trustScore: number };
-  language: "English" | "French" | "Arabic";
-  areas: string[];
-  extraJobs: PostedJob[];
+  userRole: Role;
+  user: User;
+  customerWallet: number;
+  activeJobs: Job[];
   pendingSweep: PendingSweep | null;
-  voiceOpen: boolean;
-  login: (role: UserRole) => void;
+  language: string;
+  areas: string[];
+  extraJobs: Job[];
+  login: (role: Role, email?: string, password?: string) => Promise<void>;
   logout: () => void;
-  setLanguage: (l: AuthState["language"]) => void;
+  setLanguage: (l: string) => void;
   setAreas: (a: string[]) => void;
-  addJob: (j: PostedJob) => void;
-  triggerPayout: (args: { gross: number; title: string; customer: string }) => void;
   consumePendingSweep: () => void;
-  setVoiceOpen: (b: boolean) => void;
+  topUp: (amount: number) => void;
+  withdraw: (amount: number) => void;
+  postJob: (job: Omit<Job, "id" | "state">) => void;
+  acceptJob: (id: string) => void;
+  markJobDone: (id: string) => void;
+  confirmJob: (id: string) => void;
 }
 
-const Ctx = createContext<AuthState | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setLoggedIn] = useState(false);
-  const [userRole, setRole] = useState<UserRole>("customer");
-  const [language, setLanguage] = useState<AuthState["language"]>("English");
-  const [areas, setAreas] = useState<string[]>(["Lekki Phase 1"]);
-  const [walletBalance, setWallet] = useState(0);
-  const [trustScore, setTrust] = useState(820);
-  const [extraJobs, setExtraJobs] = useState<PostedJob[]>([]);
-  const [pendingSweep, setPending] = useState<PendingSweep | null>(null);
-  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<Role>(null);
+  const [user, setUser] = useState<User>({ name: "Tunde A.", trustScore: 820, walletBalance: 12000 });
+  const [customerWallet, setCustomerWallet] = useState(50000);
+  const [language, setLanguage] = useState("English");
+  const [areas, setAreas] = useState<string[]>([]);
+  const [pendingSweep, setPendingSweep] = useState<PendingSweep | null>(null);
 
-  const addJob = useCallback((j: PostedJob) => {
-    setExtraJobs((prev) => [j, ...prev]);
+  const [activeJobs, setActiveJobs] = useState<Job[]>([
+    {
+      id: "j1",
+      title: "Generator Servicing",
+      budget: 8000,
+      state: "completed",
+      area: "Lekki Phase 1",
+      customer: "Sarah O.",
+      cat: "Repairs",
+      hustler: "Tunde A.",
+    },
+    {
+      id: "j2",
+      title: "Deep Clean - 3BR Apt",
+      budget: 22000,
+      state: "accepted",
+      area: "Ikoyi",
+      customer: "Mr. Lawal",
+      cat: "Cleaning",
+      hustler: "Tunde A.",
+    },
+    { id: "j3", title: "Errand - Pickup at Shoprite", budget: 3500, state: "pending", area: "Yaba", customer: "Chuka N.", cat: "Errands" },
+  ]);
+
+  // Persist session if token exists
+  useEffect(() => {
+    if (getToken()) {
+      apiGetMe()
+        .then((data) => {
+          setIsLoggedIn(true);
+          setUserRole(data.role as Role);
+          setUser((prev) => ({ ...prev, name: data.name }));
+        })
+        .catch(() => {
+          removeToken();
+        });
+    }
   }, []);
 
-  const triggerPayout = useCallback(
-    ({ gross, title, customer }: { gross: number; title: string; customer: string }) => {
-      const sweep = Math.round(gross * 0.2);
-      const net = gross - sweep;
-      const trustBefore = trustScore;
-      const trustAfter = Math.min(1000, trustScore + 5);
-      setPending({
-        id: Date.now(),
-        gross,
-        sweep,
-        net,
-        title,
-        customer,
-        trustBefore,
-        trustAfter,
-      });
-      // The dashboard will animate ticking; commit balances after a short delay there.
-      setTimeout(() => {
-        setWallet((w) => w + net);
-        setTrust(trustAfter);
-      }, 600);
-    },
-    [trustScore]
-  );
+  const login = async (role: Role, email = "demo@areahustle.test", password = "password") => {
+    try {
+      // Try to login via API
+      const res = await apiLogin(email, password);
+      setToken(res.access_token);
+      const me = await apiGetMe();
+      setUser((prev) => ({ ...prev, name: me.name }));
+    } catch (error) {
+      console.warn("API Login Failed, using mock local state.");
+      toast.info("Backend unreachable. Using local mock state.");
+    } finally {
+      setIsLoggedIn(true);
+      setUserRole(role);
+      setUser((prev) => ({ ...prev, name: role === "customer" ? "Sarah O." : "Tunde A." }));
+    }
+  };
 
-  const consumePendingSweep = useCallback(() => setPending(null), []);
+  const logout = () => {
+    removeToken();
+    setIsLoggedIn(false);
+    setUserRole(null);
+  };
+
+  const topUp = (amount: number) => setCustomerWallet((prev) => prev + amount);
+  const withdraw = (amount: number) => setUser((prev) => ({ ...prev, walletBalance: Math.max(0, prev.walletBalance - amount) }));
+
+  const postJob = async (job: Omit<Job, "id" | "state">) => {
+    try {
+      await apiCreateTask({ category: job.cat, description: job.title, budget: job.budget, neighbourhood: job.area });
+    } catch (e) {
+      // ignore for fallback
+    }
+    const newJob: Job = { ...job, id: Math.random().toString(36).substring(2, 9), state: "pending", isNew: true };
+    setActiveJobs((prev) => [newJob, ...prev]);
+    setCustomerWallet((prev) => prev - job.budget);
+  };
+
+  const acceptJob = (id: string) => setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "accepted", hustler: user.name } : j)));
+  const markJobDone = (id: string) => setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "completed" } : j)));
+  const confirmJob = (id: string) => {
+    const job = activeJobs.find((j) => j.id === id);
+    if (!job) return;
+    setActiveJobs((prev) => prev.map((j) => (j.id === id ? { ...j, state: "closed" } : j)));
+    const sweepAmt = job.budget * 0.2; // 20% auto loan sweep
+    const net = job.budget - sweepAmt;
+    setPendingSweep({ title: job.title, gross: job.budget, sweep: sweepAmt, net, customer: job.customer });
+    setUser((prev) => ({ ...prev, walletBalance: prev.walletBalance + net, trustScore: Math.min(1000, prev.trustScore + 15) }));
+  };
+  const consumePendingSweep = () => setPendingSweep(null);
+  const extraJobs = activeJobs.filter((j) => j.state === "pending");
 
   return (
-    <Ctx.Provider
+    <AuthContext.Provider
       value={{
         isLoggedIn,
         userRole,
+        user,
+        customerWallet,
+        activeJobs,
+        pendingSweep,
         language,
         areas,
         extraJobs,
-        pendingSweep,
-        voiceOpen,
-        user: {
-          name: "Adaeze O.",
-          avatar: "AO",
-          walletBalance,
-          trustScore,
-        },
-        login: (role) => {
-          setRole(role);
-          setLoggedIn(true);
-        },
-        logout: () => {
-          setLoggedIn(false);
-          setWallet(0);
-          setTrust(820);
-          setExtraJobs([]);
-          setPending(null);
-        },
+        login,
+        logout,
         setLanguage,
         setAreas,
-        addJob,
-        triggerPayout,
         consumePendingSweep,
-        setVoiceOpen,
+        topUp,
+        withdraw,
+        postJob,
+        acceptJob,
+        markJobDone,
+        confirmJob,
       }}
     >
       {children}
-    </Ctx.Provider>
+    </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useAuth must be used in AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (context === undefined) throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }

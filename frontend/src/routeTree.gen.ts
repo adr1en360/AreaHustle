@@ -13,6 +13,7 @@ import { Route as PostTaskRouteImport } from './routes/post-task'
 import { Route as PassportRouteImport } from './routes/passport'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as CustomerDashboardRouteImport } from './routes/customer-dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
 const PostTaskRoute = PostTaskRouteImport.update({
@@ -35,6 +36,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomerDashboardRoute = CustomerDashboardRouteImport.update({
+  id: '/customer-dashboard',
+  path: '/customer-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/customer-dashboard': typeof CustomerDashboardRoute
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/customer-dashboard': typeof CustomerDashboardRoute
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/customer-dashboard': typeof CustomerDashboardRoute
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
@@ -65,14 +74,34 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/jobs' | '/onboarding' | '/passport' | '/post-task'
+  fullPaths:
+    | '/'
+    | '/customer-dashboard'
+    | '/jobs'
+    | '/onboarding'
+    | '/passport'
+    | '/post-task'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/jobs' | '/onboarding' | '/passport' | '/post-task'
-  id: '__root__' | '/' | '/jobs' | '/onboarding' | '/passport' | '/post-task'
+  to:
+    | '/'
+    | '/customer-dashboard'
+    | '/jobs'
+    | '/onboarding'
+    | '/passport'
+    | '/post-task'
+  id:
+    | '__root__'
+    | '/'
+    | '/customer-dashboard'
+    | '/jobs'
+    | '/onboarding'
+    | '/passport'
+    | '/post-task'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CustomerDashboardRoute: typeof CustomerDashboardRoute
   JobsRoute: typeof JobsRoute
   OnboardingRoute: typeof OnboardingRoute
   PassportRoute: typeof PassportRoute
@@ -109,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customer-dashboard': {
+      id: '/customer-dashboard'
+      path: '/customer-dashboard'
+      fullPath: '/customer-dashboard'
+      preLoaderRoute: typeof CustomerDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CustomerDashboardRoute: CustomerDashboardRoute,
   JobsRoute: JobsRoute,
   OnboardingRoute: OnboardingRoute,
   PassportRoute: PassportRoute,
