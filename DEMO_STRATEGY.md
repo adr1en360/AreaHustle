@@ -3,39 +3,40 @@
 
 ---
 
-## 1. The Core Findings (Why AreaHustle Works)
-Our competitive advantage is understanding that the true risk in gig economy lending isn't character (willingness to repay)—it's **income volatility** (ability to repay during slow periods). 
+## 1. The Core Findings (Why AreaHustle Wins)
+Our competitive advantage is understanding that the true risk in gig economy underwriting is the **lack of structured alternative data** for informal workers under the Nigerian Credit Reporting Act of 2017. 
 
-By implementing an **Escrow Sweep Mechanism** (deducting a percentage at source per job, modeled after Moove), we eliminate the concept of "missing a monthly payment." If a Hustler has a slow month, the repayment simply stretches. The loan (e.g., a pressure washer) is an income-generating asset that accelerates their ability to repay. This structural insight is what we pitch to mentors and judges.
+By implementing a **Creditworthiness Proof Engine** (rather than acting as a direct lender), we eliminate capital risks and regulatory bottlenecks. Our platform produces a **Verified Work Data Package** (income velocity, consistency index, completion rates, response times) backed by a cryptographic verification hash. 
+
+This is alternative credit data that Nigerian credit bureaus (like CRC) and fintech lenders (like FairMoney, Carbon) are actively seeking. This structural insight is what we pitch to mentors and judges.
 
 ---
 
 ## 2. The "Wow Moment"
-The climax of the product is **Phase 3 of the demo flow**. It is not the task posting or the matching. 
+The climax of the product is the **AI Agent Outbound Match Call & Auto-Booking**.
 
-It is the moment a Hustler completes a ₦5,000 job and watches the wallet update in real-time:
-> **₦5,000 received → ₦1,000 swept to loan → ₦4,000 credited. Loan balance: ₦39,000.**
-
-That single screen proves the entire thesis: A worker without a bank history just serviced a loan exclusively through their "hustle" and verified performance. No collateral, no forms.
+1. **The Outbound Call:** The customer speaks a job ("Service my generator in Lekki Phase 1 for eight thousand naira"). Within seconds, the AI Agent dials the top-ranked matched provider on their phone (a premium feature):
+   > *"Hi Emeka, there's a generator servicing job in Lekki Phase 1 for eight thousand naira. Would you like to accept?"*
+   > *Emeka: "Yes."*
+2. **The Agent Auto-Booking:** The instant Emeka says yes, the AI Agent matches and claims the job on Emeka's behalf in the backend, locking it immediately. The customer's screen updates in real-time to: **Matched with Emeka**. This prevents the next hustler in the queue/line from stealing the opportunity.
+3. **The Proof Card:** Emeka opens his Financial Passport dashboard and clicks "Generate Proof Card", displaying a beautiful visual alternative credit card summarizing his 90-day earnings and consistency indexes with a QR code for lenders.
 
 ---
 
 ## 3. Execution Focus: What to Mock vs. What to Build Live
 
-To ensure a flawless 3-minute pitch, we must ruthlessy prioritize engineering effort.
+To ensure a flawless 2-minute pitch, we must ruthlessly prioritize engineering effort.
 
 ### 🚫 What to MOCK (Do not build backend logic for these)
-These features require real-world infrastructure, money, or extensive time. We fake them perfectly for the demo:
-- **KYC Verification:** Show a hardcoded "Verification Successful ✓" screen. (Do not integrate Smile Identity).
-- **MFB Partner Approval:** The credit offer screen uses seeded data. Do not build a live underwriting engine.
-- **Paystack Escrow:** Fake the payment state change via UI state or a simple DB toggle.
-- **Trust Score Computation:** Pre-calculate the 820 score from seeded job history. Do not make the judges wait for live aggregation.
-- **Neighbourhood Filter:** Show the UI dropdowns, but do not wire them up to real Nigerian LGA geodata.
-- **Profiles:** Only build 1-2 rich seeded accounts (e.g., "Emeka").
+These features require real-world integrations, external systems, or extensive setup. We fake them perfectly for the demo:
+- **KYC Verification:** Show a hardcoded "Verified ✓" badge (Tier 1/2/3). Do not run live BVN/NIN API calls.
+- **Paystack Escrow:** Show the escrow payment lock and release animations/states, but mock the Paystack checkout.
+- **Lender Consent API:** The external API endpoint that lenders use to verify the hash can return a mock JSON package.
+- **Full Geolocation Tracking:** Use named neighborhood strings (e.g., Lekki Phase 1, Ajah) rather than live Google Maps/GPS tracking.
 
 ### 🟢 What to DEMO LIVE (Must work flawlessly)
-These features prove the technical competence and the emotional core of the product:
-- **Voice-to-Intent Task Posting:** The customer speaks -> Gemini extracts Category + Neighbourhood + Budget -> Structured card appears. **This is the Aethex track wow moment.**
-- **The Wallet Sweep Animation:** The visual confirmation of the micro-sweep mechanism. The numbers must update dynamically on screen.
-- **Hustler Dashboard (Trust Score Breakdown):** Show the *weights* of the signals (consistency, completion rate), not just a raw number, to prove the validity of the behavioral model.
-- **Financial Passport View:** One clean screen showing verified income, trust score, credit limit, and loan status. This is the slide the judges will photograph.
+These features prove the technical competence and the core value proposition of the product:
+- **Voice-to-Intent Task Posting:** Customer clicks "Speak", says the task → Gemini Flash extracts category, budget, and neighborhood → Task card appears in real-time.
+- **AI Agent Call & Auto-Booking:** Trigger the queue. The AI agent places the call to the premium matched hustler, who accepts, and the agent books the job on their behalf immediately.
+- **Financial Passport Dashboard:** Emeka's profile dashboard displaying verified earnings history, completed jobs counts, and completion rate.
+- **Creditworthiness Proof Card:** Render the physical, shareable credential with verified stats and verification hash.

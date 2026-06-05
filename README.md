@@ -1,25 +1,26 @@
 # AreaHustle
 
-**"Your Area, Your Hustle, Your Trust."**
+**"Your Area. Your Hustle. Your Proof."**
 
-AreaHustle is a hyper-local gig marketplace and behavioral credit engine designed for the Nigerian market. Version 3.0 leverages **Voice-first AI** to bridge the digital literacy gap, allowing middle-class households and small businesses to post tasks and workers to manage their financial identity through natural voice conversations.
+AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work into bankable creditworthiness proof. It leverages **Voice-first AI** to bridge the digital literacy gap, allowing middle-class households and small businesses to post tasks, and informal workers (Hustlers) to build a verified financial identity that unlocks credit access.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Features (The Three Pillars)
 
-- **🎙️ Voice-to-Intent Task Posting:** Post jobs like "Car Wash" or "Generator Repair" just by speaking. Powered by **Aethex STT** and **Gemini 1.5 Flash**.
-- **🛡️ Voice-Assisted Financial Passport:** A real-time conversational interface for Hustlers to query their Trust Score and loan eligibility.
-- **📍 Hyper-Local Filtering:** Smart neighbourhood-based discovery (Lekki, Ajah, Magodo, etc.) without the battery drain of real-time GPS tracking.
-- **🌍 Multi-lingual Support:** Native support for English, French, and Arabic.
+- **🎙️ Pillar 1: Voice-to-Intent Task Posting:** Post jobs like "Car Wash" or "Generator Repair" just by speaking. Powered by **Aethex Speech-to-Text** and **Google Gemini Flash** for structured JSON intent extraction.
+- **📞 Pillar 2: AI Agent Outbound Calling & Auto-Booking:** Matched premium providers receive direct voice calls from an Aethex Outbound AI Agent to accept gigs. Upon acceptance, the agent immediately claims and books the job on their behalf to prevent others in the queue from taking it.
+- **💳 Pillar 3: Financial Passport & Creditworthiness Proof Card:** Hustlers track their standings via a premium visual dashboard and generate a shareable, cryptographically hashed alternative data card aligned with the **Nigerian Credit Reporting Act of 2017**.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12)
+- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+)
 - **Package Manager:** [uv](https://github.com/astral-sh/uv)
-- **Database:** [MongoDB](https://www.mongodb.com/) (Async with Motor)
-- **Voice Infrastructure:** [Aethex API](https://developers.aethexai.com/)
-- **LLM/Extraction:** [Google Gemini 1.5 Flash](https://ai.google.dev/)
+- **Database:** [MongoDB](https://www.mongodb.com/) (Async with Motor Driver)
+- **Voice AI Platform:** [Aethex API](https://developers.aethexai.com/)
+- **Large Language Model:** [Google Gemini Flash](https://ai.google.dev/)
 
 ---
 
@@ -30,9 +31,9 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine designe
 - [Python 3.12+](https://www.python.org/)
 - [uv](https://github.com/astral-sh/uv) installed
 - [MongoDB](https://www.mongodb.com/try/download/community) (Local or Atlas)
-- [Docker](https://www.docker.com/) (Optional, for Atlas Local)
+- [Node.js & npm](https://nodejs.org/) (for Frontend)
 
-### Installation
+### Backend Installation & Setup
 
 1. **Clone the repository:**
    ```bash
@@ -40,7 +41,7 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine designe
    cd areahustle
    ```
 
-2. **Initialize the backend:**
+2. **Initialize and sync the virtual environment:**
    ```bash
    cd backend
    uv venv
@@ -56,31 +57,41 @@ AreaHustle is a hyper-local gig marketplace and behavioral credit engine designe
    GEMINI_API_KEY="your_gemini_key"
    ```
 
-### 🏃 Running the MVP
-
-1. **Setup the Aethex Voice Agent:**
-   ```bash
-   uv run python setup_aethex.py
-   ```
-   *This script will output an `AGENT_ID`. Add it to your `.env` as `AETHEX_PASSPORT_AGENT_ID`.*
-
-2. **Start the API server:**
+4. **Start the API server:**
    ```bash
    uv run uvicorn main:app --reload
    ```
    *The API will be available at `http://127.0.0.1:8000`. Documentation at `/docs`.*
 
+### Frontend Installation & Setup
+
+1. **Initialize and run Vite app:**
+   ```bash
+   cd ../frontend
+   npm install
+   npm run dev
+   ```
+   *The dev server will run at `http://localhost:5173`.*
+
 ---
 
 ## 📖 API Usage Highlights
 
-### Post Task via Voice (Draft)
-`POST /api/v1/tasks/voice-to-intent`
-- Extracts category and neighbourhood from audio transcripts using Gemini.
+### Post Task via Voice Intent Extraction
+`POST /api/v1/tasks/voice-extract`
+- Transcribes customer audio and extracts structured task fields via Gemini Flash.
 
-### Start Financial Passport Conversation
-`POST /api/v1/passport/voice-session`
-- Returns a **WebRTC session** from Aethex to initiate a real-time voice call.
+### Trigger AI Outbound Matching
+`POST /api/v1/tasks/notify-hustlers/{task_id}`
+- Starts the voice queue matching workflow.
+
+### Outbound call trigger & booking handler
+`POST /api/v1/tasks/call-hustler`
+- Triggers a premium voice call to offer the task and book it on behalf of the hustler upon acceptance.
+
+### Generate Creditworthiness Proof Card
+`GET /api/v1/passport/proof-card`
+- Computes verified 90-day earnings velocity, consistency index, and returns a secure verification hash.
 
 ---
 

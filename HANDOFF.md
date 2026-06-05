@@ -1,77 +1,71 @@
 # AreaHustle: Developer Handoff Guide
+**Version:** 2.0 | **Focus:** Alternative Creditworthiness Proof & Voice AI MVP
 
-This guide defines the clear separation of duties for the **Backend** and **Frontend** teams following the completion of the AI Engineering phase.
-
----
-
-## 🤖 Completed AI Engineering (Done)
-
-- **Aethex WebRTC Bridge:** Endpoints for session creation and SDP proxying are live. Tested and verified.
-- **Gemini Intent Extraction:** Schema-based extraction using Gemini 3 Flash is integrated into the task posting flow.
-- **AI Infrastructure:** All API keys and model configurations are set up in `.env`.
-- **Validation:** Run `python test_all.py` in the `backend` folder to verify the full stack.
+This guide defines the clear separation of duties for the **Backend** and **Frontend** teams to successfully build and deliver the AreaHustle v2.0 MVP by Sunday.
 
 ---
 
-## ⚙️ Backend Developer: Completed Tasks
+## 🤖 Completed AI Engineering & Base Infrastructure
 
-All core backend "gears" have been built:
-
-1. **Authentication (JWT):**
-   - `POST /api/v1/auth/register` and `POST /api/v1/auth/login` with bcrypt + JWT.
-   - All endpoints now require Bearer tokens via `OAuth2PasswordBearer`.
-2. **Task Lifecycle:**
-   - `POST /api/v1/tasks/` — create task (customer only)
-   - `GET /api/v1/tasks/` — list with neighbourhood/category/status filters
-   - `POST /api/v1/tasks/{id}/match` — hustler accepts task
-   - `POST /api/v1/tasks/{id}/activate` — transition to active
-   - `POST /api/v1/tasks/{id}/complete` — transition to completed
-3. **Loan & Transaction Persistence:**
-   - `POST /api/v1/loans/` — create active loan
-   - `POST /api/v1/passport/demo/complete-job-sweep` — now persists sweep, decrements loan balance, logs transactions, and updates wallet/completed_jobs/trust_score.
-4. **Hustler Profile CRUD:**
-   - `POST /api/v1/users/hustler-profile`
-   - `GET /api/v1/users/hustler-profile`
-   - `PUT /api/v1/users/hustler-profile`
-   - `GET /api/v1/users/nearby-hustlers`
-5. **Passport & Financial Data:**
-   - `GET /api/v1/passport/me` — returns wallet, trust score, job stats
-   - `GET /api/v1/passport/transactions` — full ledger
-   - `GET /api/v1/loans/transactions` — same via loans prefix
-6. **Tests & Docs:**
-   - `test_backend.py` — end-to-end integration tests for all new flows.
-   - `AreaHustle_API_Postman_Collection.json` — full Postman collection.
+- **Aethex STT/TTS & Outbound Voice Match Infrastructure:** Baseline outbound calling session endpoints are integrated.
+- **Gemini Intent Extraction:** Schema-based entity extraction (Category, Neighborhood, Budget) is functional via FastAPI.
+- **Database:** MongoDB (using Motor async driver) initialized.
+- **Environment:** System keys and configurations mapped in `.env`.
 
 ---
 
-## 🔌 Next Step: Wire Frontend to Backend APIs
+## ⚙️ Backend Developer: Task Breakdown (Sprint Plan B1-B8)
 
-The frontend is currently 100% client-side mocked (see `auth-context.tsx`, `jobs.tsx`, `passport.tsx`).
-The next major effort is replacing hardcoded data with `fetch()` calls to the live backend endpoints.
-Key integration points:
+The backend team is responsible for implementing the following API endpoints and database logic:
 
-- Replace `login()` in `auth-context.tsx` with calls to `/api/v1/auth/login` and store JWT token.
-- Replace `triggerPayout()` with a real call to `/api/v1/passport/demo/complete-job-sweep`.
-- Wire `/api/v1/tasks` for the job feed.
-- Wire `/api/v1/passport/me` for the Financial Passport data.
-
----
-
-## 🎨 Frontend Developer: Remaining Tasks
-
-The frontend needs to bring the "Wow Moment" to life using the PWA philosophy:
-
-1. **The Voice Experience:**
-   - Build the **"Speak Task"** interface. Use the browser's `MediaRecorder` API to capture audio and hit the `/voice-to-intent` endpoint.
-   - Implement the **Aethex Call UI**. Use the `frontend/index.html` logic as a reference to build the real-time audio connection in your framework.
-2. **The "Money Shot" Animation:**
-   - Create a high-fidelity animation for the **Wallet Sweep**. When the "Complete Job" action is triggered, visually show the gross earnings being split into "Repayment" and "Net Payout."
-3. **PWA Compliance:**
-   - Set up the `manifest.json` and a Service Worker for offline/cached performance. your call
-4. **Hustler Dashboard:**
-   - Design a high-contrast **Financial Passport** screen showing the Trust Score breakdown and credit eligibility.
+1. **B1: User Registration & Authentication (JWT)**
+   - Endpoints: `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`.
+   - Setup JWT validation middleware for secure routes.
+2. **B2: Hustler Profile Creation & CRUD**
+   - Endpoints: `POST /api/v1/users/hustler-profile`, `GET /api/v1/users/hustler-profile`, `PUT /api/v1/users/hustler-profile`.
+3. **B3: Task Creation & Voice-to-Intent Extraction**
+   - Endpoint: `POST /api/v1/tasks/voice-extract`.
+   - Integrates the browser audio stream/transcript with Gemini Flash for entity extraction.
+4. **B4: Task Lifecycle API**
+   - Endpoints: `POST /api/v1/tasks/` (publish task), `GET /api/v1/tasks/` (fetch feed filtered by neighborhood/category/status).
+5. **B5: AI Match Outbound Calling Queue**
+   - Endpoint: `POST /api/v1/tasks/notify-hustlers/{task_id}`.
+   - Core matchmaking logic: Rank eligible hustlers in the task neighborhood, dial them via Aethex sequentially, and handle responses (with a 2-minute timeout per attempt).
+6. **B6: Aethex Outbound Call Trigger & Booking Handler**
+   - Endpoint: `POST /api/v1/tasks/call-hustler`.
+   - Initiates premium outbound voice session. If matched hustler accepts, the backend immediately books the task on their behalf (matches task status to `matched` and assigns to hustler) to lock it in.
+7. **B7: Task Completion & Escrow Release**
+   - Endpoints: `POST /api/v1/tasks/{id}/match` (accept task), `POST /api/v1/tasks/{id}/complete` (complete task, release mocked escrow, update hustler metrics).
+8. **B8: Financial Passport Metrics & Proof Card**
+   - Endpoints: `GET /api/v1/passport/me` (dashboard numbers), `GET /api/v1/passport/proof-card` (bureau data package + cryptographic hash).
 
 ---
 
-**AI Engineer Status: COMPLETE.**  
-The stack is green. Refer to `INDEX.md` for blueprint details.
+## 🎨 Frontend Developer: Task Breakdown (Sprint Plan F1-F8)
+
+The frontend team is responsible for coding the screens, wiring them to the API, and implementing the voice interface:
+
+1. **F1: Layout & Core Design System**
+   - High-fidelity visual styles (`index.css`) with premium dark modes, harmonious colors, and smooth micro-animations.
+2. **F2: Authentication Flow UI**
+   - User registration/login modal.
+3. **F3: Voice-to-Intent Task Poster UI (Pillar 1)**
+   - The "Speak Task" button, browser SpeechRecognition capture, progress indicators, and the structured draft review card.
+4. **F4: Active Escrow & Task Management UI**
+   - Customer view of published tasks, active matches, and the "Complete Task" trigger.
+5. **F5: Job Feed UI**
+   - Interactive list of open gigs filtered by neighborhood/category, with manual accept fallback.
+6. **F6: Outbound Voice Match Notification UI (Pillar 2)**
+   - Visual indicator showing match queue attempts. Outbound call ringing or in-app voice message playback overlay.
+7. **F7: Premium Match Acceptance & Auto-Booking Lock UI (Pillar 2)**
+   - Booking feedback overlay. Upon voice call acceptance, display: "Booking task on your behalf... Locked!" while the agent executes the matches to prevent others in queue from claiming it.
+8. **F8: Shareable Creditworthiness Proof Card UI (Pillar 3)**
+   - The structured data card summarizing bureau metrics, complete with verification hash and WhatsApp "Share" button.
+
+---
+
+## 🔌 API Wiring Details
+
+* All frontend-to-backend API calls must go to `/api/v1/...`.
+* Include the JWT token in headers as `Authorization: Bearer <token>` for all protected endpoints.
+* Ensure CORS is configured properly in backend `main.py`.

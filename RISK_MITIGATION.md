@@ -1,49 +1,43 @@
 # AreaHustle: Risk Assessment & Mitigation Strategy
 **YPIT Hackathon 2026 | Technical & Business Resilience Plan**
 
-As we build for the Nigerian informal economy, we recognize three critical risks that could impact the scale and sustainability of AreaHustle. Below are our documented mitigations based on current industry standards and technical workarounds.
+As we build for the Nigerian informal economy under a voice-first model, we recognize four critical risks that could impact the scale and sustainability of AreaHustle. Below are our documented mitigations based on current industry standards and technical workarounds.
 
 ---
 
 ## 1. The Network Risk (Technical Latency)
-**Risk:** Poor 4G/3G network performance in dense urban areas leading to high latency in voice interactions, causing user abandonment.
+**Risk:** Poor 4G/3G network performance in dense urban corridors in Lagos leading to high latency in WebRTC voice interactions, causing user abandonment.
 
 ### 🛡️ Mitigation Strategy
-- **WebRTC Optimization:**
-    - **Local Relay (TURN):** We will prioritize using TURN servers located in Lagos or Nairobi to keep Round-Trip Time (RTT) below 100ms.
-    - **Adaptive Bitrate:** Implement aggressive media constraints (Opus Narrowband at 6-12 kbps) which are resilient to packet loss on congested towers.
-- **Architectural Fallbacks:**
-    - **Asynchronous STT:** For non-real-time task posting (Voice-to-Intent), we use a "Record-then-Upload" flow with a background progress bar, ensuring the user isn't stuck waiting for a synchronous response on a weak link.
-    - **Offline Queueing:** The app will support local storage of voice notes, uploading them automatically once a stable connection is detected.
+- **Adaptive Bitrate Streaming:** Configure Aethex/WebRTC media constraints to prioritize voice over bandwidth, using Opus Narrowband (6-12 kbps) which remains highly audible and responsive even on congested towers.
+- **Asynchronous Audio Capture:** For task posting (Voice-to-Intent), the app uses a standard "Record-then-Upload" flow via the browser's `MediaRecorder` API rather than streaming raw audio live. The user sees a visual upload progress bar, and extraction happens on the completed file.
+- **Local TURN Servers:** Ensure our signaling and media streams route through low-latency servers nearest to West Africa to keep round-trip times (RTT) under 150ms.
 
 ---
 
-## 2. The Accent & Language Risk (AI Accuracy)
-**Risk:** Current STT models (Aethex/Whisper) may struggle with heavy Nigerian accents, Pidgin English, or regional code-switching, leading to failed task extractions.
+## 2. The Language & Accent Risk (AI Accuracy)
+**Risk:** Native STT engines may fail to accurately transcribe local West African accents, Nigerian English, or multi-lingual code-switching (e.g. English mixed with Yoruba or Pidgin), causing Gemini to extract incorrect task entities.
 
 ### 🛡️ Mitigation Strategy
-- **Prompt Engineering (Priming):**
-    - We "prime" the Aethex/STT engine by providing a context-heavy prompt including common Nigerian landmarks, currency terms (Naira, Kobo), and category-specific jargon (e.g., "generator servicing," "rewire," "vulcanizer").
-- **LLM Post-Processing (The Correction Layer):**
-    - Instead of relying on raw STT, we pass the "noisy" transcript through **Gemini 1.5 Flash**. Gemini acts as a semantic corrector, trained to recognize phonetic patterns common in West African accents (e.g., "p/b" or "l/r" shifts) and map them back to the intended meaning.
-- **Human-in-the-Loop Confirmation:**
-    - The UI will always present a structured "draft" of the extracted intent. Users can tap to correct the category or neighbourhood, providing a feedback loop that trains our local synonym mapping.
+- **Accent-Heavy Prompt Priming:** The Aethex STT transcription model is primed with a comprehensive local lexicon, including common Lagos landmarks (e.g. Lekki, Ajah, GRA, Yaba), local currency markers, and service terms (e.g., "vulcanizer," "rewire," "generator servicing").
+- **Gemini Post-Extraction Correction:** Instead of using raw STT output, the transcript is processed by **Google Gemini Flash**. The prompt dictates a rigorous entity-extraction pattern designed to recognize phonetic spelling anomalies and map them back to clean system slugs.
+- **Explicit UI Confirmation:** The customer is never booked immediately. The frontend displays the extracted intent as a simple, editable draft card where the user can manually adjust the category or neighborhood before confirming.
 
 ---
 
-## 3. The Business/Credit Risk (Income Volatility)
-**Risk:** Our biggest credit risk is income volatility, not borrower character. A reliable Hustler with a high rating can still have a slow month due to demand patterns. A fixed loan repayment during a slow period will lead to default, breaking the credit loop.
+## 3. The Lender Adoption Risk ("Data Nobody Bought")
+**Risk:** The Creditworthiness Proof Card and Verified Work Data Package might not be trusted or utilized by local financial institutions and microfinance banks (MFBs), rendering the financial passport useless.
 
 ### 🛡️ Mitigation Strategy
-Three structural mechanics protect us from the "good Hustler, bad borrower" failure:
-
-1. **Income Velocity Weighting:**
-    - Our Trust Score weights transaction consistency (frequency + regularity) heavily. A Hustler with 3 jobs/week consistently beats one with 15 jobs one month and 2 the next. The credit limit engine sizes loans to sustainable income velocity, not peak earnings.
-2. **Variable Sweep Percentage (Not Fixed):**
-    - We design the sweep as a % of each payout (e.g., 20% per job) rather than a fixed monthly amount. The repayment scales down automatically when the Hustler has a slow month. No income, no sweep — but no default either, just an extended term.
-3. **Income-Generating Asset Loans:**
-    - Unlike consumption loans, our equipment loans (e.g., a ₦40,000 pressure washer) directly increase the Hustler's job capacity and earning rate. The loan actively improves the income required to repay it.
-
+- **CRC Credit Bureau Alignment:** The data model structure (income velocity, income consistency index, dispute rates) is mapped specifically to alternative credit variables recognized under the **Nigerian Credit Reporting Act of 2017**.
+- **Cryptographic Hash Verification:** Every proof card has a unique, tamper-proof `verification_hash`. Lenders can verify the card's legitimacy via our secure portal, reducing fraud risk to zero.
+- **B2B Consent-First APIs:** Rather than just screenshots, we support a secure, time-limited OAuth-style consent handshake (Consent Tokens) enabling lenders to fetch the JSON payload directly into their proprietary underwriting engines.
 
 ---
-**AreaHustle: Building resilience into the hustle.**
+
+## 4. The Disintermediation Risk (Transacting Off-Platform)
+**Risk:** Once a customer finds a reliable generator mechanic, they may save their WhatsApp number and bypass AreaHustle for future jobs, preventing us from gathering continuous income velocity data.
+
+### 🛡️ Mitigation Strategy
+- **The Financial Passport Incentive:** The Hustler's creditworthiness proof only updates with transactions processed through AreaHustle's escrow ledger. Off-platform jobs are invisible. If a mechanic wants to maintain high earnings credit velocity to secure a loan, they must insist on transacting on-platform.
+- **Zero-Commission Tier for Hustlers:** We charge the transaction fee (3-5%) to the task poster (customer) or wave it entirely for high-performing, verified hustlers to remove any financial friction that would encourage taking the transaction offline.

@@ -1,14 +1,20 @@
 # AreaHustle Documentation Index
 
-This file serves as the directory for all project documentation to maintain context throughout the build week.
+> **Last Updated:** June 5, 2026 — Post-pivot (v2.0)
 
-| File | Purpose & Contents | When to Read |
-| :--- | :--- | :--- |
-| **`README.md`** | **The Front Door:** Industry-standard repository intro. Contains the core value proposition, tech stack, and setup/run instructions. | General onboarding, GitHub visitors, Hackathon Judges evaluating the repo. |
-| **`TECHNICAL_PRD.md`** | **The Blueprint:** Detailed Product Requirements Document. Contains backend architecture, MongoDB schemas, Aethex/Gemini flows, and MVP Scope limits. | When implementing backend logic, building data models, or checking scope. |
-| **`PROJECT_SUBMISSION.md`** | **The Pitch:** The exact copy intended for the YPIT Hackathon Submission portal. Contains team details, problem/solution narratives, and specific mentor support requests. | When reviewing the official narrative or preparing for mentor check-ins. |
-| **`PROJECT_SHOWCASE.md`** | **The Narrative:** A deeper dive into *why* the tech matters. Explains the alignment with the Finance and Aethex tracks, and the impact of the Financial Passport. | When preparing the Demo Day script or slide deck. |
-| **`RISK_MITIGATION.md`** | **The Defense:** Deep domain analysis covering Network Latency, AI Accent/Language barriers, and Income Volatility. Details technical and structural solutions. | Before mentor meetings to defend the architecture and business model. |
-| **`DEMO_STRATEGY.md`** | **The Playbook:** Defines the "Wow Moment" (the wallet sweep). Strictly outlines what engineering effort to skip (Mock) vs. what must be flawless (Live). | Daily reference during the hackathon to prevent feature creep. |
-| **`HANDOFF.md`** | **The Developer Guide:** Defines the clear separation of duties for Backend vs. Frontend developers. | When onboarding new team members to the build week. |
-| **`FAILED_ATTEMPTS.md`** | **The Log:** A record of technical dead-ends and failed implementation attempts to prevent recursive errors. | When an approach fails and you need to document the pivot. |
+## Primary Documents
+
+| File | Purpose | When to Read |
+|:-----|:--------|:-------------|
+| **`prd_v2/PRD_V2.md`** | **The Product Bible (v2.0):** Full PRD with the pivoted concept — creditworthiness proof (not lending), 3 pillars (voice posting, AI notifications, financial passport), CRC-aligned data model, edge cases, competitive matrix, and demo script. | First read. Everything flows from this. |
+| **`prd_v2/SPRINT_PLAN.md`** | **The Build Plan:** Day-by-day task breakdown for backend + frontend developers. Every task has file locations, code snippets, time estimates. Deadline: Sunday June 7. | During the 2-day build sprint. |
+| **`TECHNICAL_PRD.md`** | **The Technical Specification (v2.0):** Developer-facing tech architecture, API routing, and MongoDB data models. Aligned with the pivot. | During build week. |
+| **`README.md`** | **The Public Face:** GitHub-facing project overview. Needs updating to v2.0 framing. | Before submission. |
+| **`PROJECT_SUBMISSION.md`** | **The Entry Form:** Hackathon submission details. Needs updating to v2.0. | At submission time. |
+| **`PROJECT_SHOWCASE.md`** | **The Elevator Pitch:** Short-form project showcase. Needs updating to v2.0. | At submission time. |
+| **`DEMO_STRATEGY.md`** | **The Demo Playbook:** Capturing the "wow moment" (AI Match Outbound Call + Creditworthiness Proof Card). Follows the 2-minute pitch script. | Before demo recording. |
+| **`RISK_MITIGATION.md`** | **The Safety Net:** Technical risk mitigation strategies. Most still apply. | During build week. |
+| **`HANDOFF.md`** | **The Developer Guide:** Backend vs. Frontend duty separation. | When onboarding team members. |
+| **`FAILED_ATTEMPTS.md`** | **The Log:** Record of technical dead-ends. | When an approach fails. |
+| **`council_review.md`** *(artifact)* | **Pre-pivot Review:** 6-critic analysis on v1.0 concept. Historical. | Reference only. |
+| **`council_review_v2.md`** *(artifact)* | **Post-pivot Review:** 4-critic pitch panel on v2.0 concept. Contains edge case resolutions, competitive matrix, and concept definition. | Before pitch prep. |

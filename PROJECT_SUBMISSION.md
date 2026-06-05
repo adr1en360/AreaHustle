@@ -17,35 +17,42 @@
 ## SECTION B: PROJECT BRIEF
 
 ### The Problem
-Middle-class households and small businesses in Nigerian cities struggle to find safe, verified local artisans for routine household tasks.
- Meanwhile, informal workers waste productive hours waiting for sporadic jobs and lack the formal income history required to access credit. Existing gig platforms fail to solve this because they rely on unscalable transaction commissions for micro-tasks rather than addressing the core financial exclusion of the workers.
+Nigeria's informal economy is valued at $5.17 billion and employs ~3 million gig workers (mechanics, cleaners, plumbers). These workers are completely invisible to the formal financial sector. Traditional banks and digital micro-lenders cannot underwrite them because they lack formal payslips, bank statements, or collateral. At the same time, urban middle-class households struggle to find reliable, verified local service providers.
 
 ### Your Target User
-We are building for skilled informal workers, like a generator mechanic in Lagos using an entry-level Android phone. Currently, they rely on unpredictable jobs, leaving them with no verifiable financial history to secure micro-loans for new tools. If our solution works, every job they complete will automatically build a behavioral credit profile, allowing them to use a hands-free voice interface to check their updated credit metrics and access working capital.
+Our primary user is the informal service provider (Hustler), such as a generator mechanic or car washer in Lagos. They are WhatsApp-native, use entry-level Android devices, and are data-cost sensitive. They currently struggle to secure loans to buy tools because their income history is unrecorded. 
+Our secondary user is the customer—middle-class households in Lagos estate corridors who value reliable, verified service and convenient payment.
 
 ### Your Proposed Solution
-We are building a mobile-first, hyper-local gig marketplace with an integrated behavioral credit engine. For this week, we are building a functional flow where a customer posts a task using their voice, and a Hustler accepts it. Once completed, the job instantly updates the Hustler's Financial Passport, allowing them to use a hands-free voice interface to check their updated credit metrics.
+AreaHustle is a voice-first, hyper-local gig marketplace that turns everyday work into bankable creditworthiness proof. It connects local task-posters with verified service providers. When a task is completed, it updates the Hustler's Financial Passport. AreaHustle then generates a structured **Verified Work Data Package** and a shareable **Creditworthiness Proof Card** aligned with alternate data requirements under the Nigerian Credit Reporting Act of 2017. Lenders use this data to confidently extend credit.
 
 ### The AI Component
-AI removes the severe friction of text-based interfaces for our low-literacy users. Aethex's localized Speech-to-Text and Text-to-Speech infrastructure allows users to post tasks and query complex financial metrics entirely by voice in English, French, or Arabic. Additionally, Gemini extracts structured entities (like budget and location) from these voice transcripts, while a machine learning model computes behavioral trust scores to underwrite the micro-credit.
+AI is the core bridge that makes the platform accessible and friction-free for informal workers:
+1. **Voice-to-Intent Task Posting:** Aethex STT and Google Gemini Flash extract structured job parameters (budget, category, location) directly from plain speech, bypassing complex web forms.
+2. **AI Agent Outbound Match Call & Auto-Booking:** Rather than letting push notifications get closed by battery optimizations, our Aethex Outbound Agent calls the matched premium provider's phone. If they accept via voice ("Yes"), the AI Agent immediately books the job on their behalf in the backend to lock it in and prevent other hustlers in the queue from taking it.
+3. **Financial Passport Dashboard:** Hustlers view their verified earnings (30d/60d/90d), consistency index, completion rate, and platform metrics, generating a shareable creditworthiness card.
 
 ### Definition of Done
-On Demo Day, we will show a working mobile app where a customer dictates a task using the Aethex voice API, which automatically fills the submission form. We will then demonstrate the data-to-credit loop by having the Hustler use a conversational voice command to check their updated trust score and loan eligibility after completing that job.
+On Demo Day, we will showcase:
+1. A customer posting a task using their voice, which Gemini extracts into a structured card.
+2. The platform ranking eligible providers and triggering a premium Aethex AI Agent call to the matched Hustler.
+3. The Hustler accepting the job via voice, and the AI Agent immediately booking the task on their behalf to prevent other hustlers in queue from claiming it.
+4. The Hustler completing the job, updating their Financial Passport, and generating a verified, shareable Creditworthiness Proof Card.
 
 ---
 
 ## SECTION C: SUPPORT NEEDED
 
 ### Biggest unknown or risk right now
-Our biggest technical risk is ensuring low-latency, accurate voice interactions for informal workers using entry-level Android devices on congested 3G/4G networks. Specifically, we are uncertain how well the Aethex Speech-to-Text models will handle heavy Nigerian accents or local dialects in real-time without frustrating the user. While we plan to mitigate this using prompt engineering and Gemini 1.5 Flash as a semantic "correction layer," validating this flow in the wild is our biggest hurdle this week.
+Our primary technical risk is ensuring low-latency Aethex voice match calls on congested Nigerian 3G/4G networks, particularly for entry-level Android devices. Our business-side challenge is defining the exact threshold for the alternative data parameters (e.g. income consistency indexes) to ensure the packages we generate are instantly digestible by local digital lenders.
 
 ### What mentor support would be most useful this week
-We need a mentor with experience in Voice AI and WebRTC to help us optimize our audio streaming constraints for low-bandwidth African networks. Additionally, someone with domain expertise in African fintech or micro-lending would be invaluable to help us refine our behavioral trust scoring model—ensuring that our platform signals (like "repeat hire ratios") translate robustly into a viable credit score that a microfinance bank would actually accept.
+Mentorship from credit risk analysts or product leads at Nigerian fintech lenders (e.g., FairMoney, Carbon, Branch) would be highly valuable. Their insight will help validate that our metrics (completion rate, earnings consistency index) map directly into viable inputs for their underwriting models.
 
 ### Tools, data, or resources you need
-1. **Aethex API Access:** Full access to Agents, WebRTC, and STT/TTS documentation/keys.
-2. **Gemini 1.5 Flash API:** For real-time intent extraction and transcript correction.
-3. **Cloud Hosting Credits:** To deploy our FastAPI backend and MongoDB database (e.g., Railway, Render, or GCP).
+1. **Aethex API Access:** For real-time WebRTC and outbound voice call signaling.
+2. **Google Gemini Flash API:** For structured entity extraction from speech transcripts.
+3. **Paystack Sandbox Access:** For testing escrow transaction notifications.
 
 ---
 
