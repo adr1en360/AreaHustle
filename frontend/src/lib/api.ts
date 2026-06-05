@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/api/v1";
+const API_URL = "http://localhost:8080/api/v1";
 
 export function getToken() {
   return localStorage.getItem("area_token");

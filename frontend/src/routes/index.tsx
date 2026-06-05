@@ -62,7 +62,7 @@ function Landing() {
                       openAuth("customer");
                     }
                   }}
-                  className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition shadow-soft"
+                  className="group inline-flex items-center justify-center w-full sm:w-auto gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition shadow-soft"
                 >
                   <Mic className="h-4 w-4" />
                   Post a Task (Voice Enabled)
@@ -70,7 +70,7 @@ function Landing() {
                 </Link>
                 <button
                   onClick={() => openAuth("hustler")}
-                  className="inline-flex items-center gap-2 rounded-full border bg-card px-5 py-3.5 text-sm font-semibold hover:bg-muted transition"
+                  className="inline-flex items-center justify-center w-full sm:w-auto gap-2 rounded-full border bg-card px-5 py-3.5 text-sm font-semibold hover:bg-muted transition"
                 >
                   Join as a Hustler
                 </button>
@@ -161,13 +161,13 @@ function Landing() {
 
       {/* LOGOS / TRUST STRIP */}
       <section className="border-y bg-card/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-10 gap-y-3 text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground text-center">
           <span>Powered by Aethex Voice</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>Gemini Intent Parsing</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>Paystack Escrow</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>Flutterwave Sweeps</span>
         </div>
       </section>
@@ -208,7 +208,7 @@ function Landing() {
       {/* EDITORIAL SPLIT */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-0 py-16">
         <div className="grid lg:grid-cols-2 gap-10 items-center">
-          <div className="relative rounded-[2rem] overflow-hidden shadow-elevated aspect-[1/1]">
+          <div className="relative rounded-[2rem] overflow-hidden shadow-elevated aspect-[1/1] sm:aspect-[4/3] lg:aspect-[1/1]">
             <img src={heroHustler} alt="Professional Nigerian artisan" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute bottom-5 left-5 right-5 rounded-2xl glass p-4">
               <div className="flex items-center gap-3">
@@ -262,7 +262,7 @@ function Landing() {
               { v: "98%", l: "On-time releases" },
               { v: "2.4M", l: "Voice tasks parsed" },
             ].map((s) => (
-              <div key={s.l}>
+              <div key={s.l} className="text-center md:text-left">
                 <div className="font-display text-3xl font-bold">{s.v}</div>
                 <div className="text-sm opacity-80 mt-1">{s.l}</div>
               </div>
@@ -279,14 +279,17 @@ function Landing() {
             Ready to turn your hustle into history?
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">Join the marketplace that pays you fairly today - and finances you tomorrow.</p>
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => openAuth("customer")}
-              className="rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground"
+              className="rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-95 transition"
             >
               Post your first task
             </button>
-            <button onClick={() => openAuth("hustler")} className="rounded-full border px-6 py-3.5 text-sm font-semibold">
+            <button
+              onClick={() => openAuth("hustler")}
+              className="rounded-full border bg-card px-6 py-3.5 text-sm font-semibold hover:bg-muted transition"
+            >
               Become a Hustler
             </button>
           </div>

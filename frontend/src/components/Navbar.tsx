@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { naira } from "@/lib/format";
-import { Wallet, LogOut, Shield } from "lucide-react";
+import { Wallet, LogOut, Shield, LayoutDashboard, Briefcase, CreditCard, PlusCircle } from "lucide-react";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { AuthModal } from "./AuthModal";
 import { toast } from "sonner";
@@ -44,24 +44,32 @@ export function Navbar() {
             <div className="flex items-center gap-4 sm:gap-6">
               {userRole === "customer" ? (
                 <>
-                  <Link to="/customer-dashboard" className="text-sm font-medium hover:text-primary transition">
-                    Dashboard
+                  <Link
+                    to="/customer-dashboard"
+                    title="Dashboard"
+                    className="flex items-center gap-2 text-sm font-medium hover:text-primary transition"
+                  >
+                    <LayoutDashboard className="h-5 w-5 sm:hidden" />
+                    <span className="hidden sm:inline">Dashboard</span>
                   </Link>
-                  <Link to="/post-task" className="text-sm font-medium hover:text-primary transition hidden sm:block">
-                    Post Task
+                  <Link to="/post-task" title="Post Task" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
+                    <PlusCircle className="h-5 w-5 sm:hidden" />
+                    <span className="hidden sm:inline">Post Task</span>
                   </Link>
-                  <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+                  <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs sm:text-sm font-semibold text-primary">
                     <Wallet className="h-4 w-4" />
                     {naira(customerWallet)}
                   </div>
                 </>
               ) : (
                 <>
-                  <Link to="/jobs" className="text-sm font-medium hover:text-primary transition">
-                    Job Market
+                  <Link to="/jobs" title="Job Market" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
+                    <Briefcase className="h-5 w-5 sm:hidden" />
+                    <span className="hidden sm:inline">Job Market</span>
                   </Link>
-                  <Link to="/passport" className="text-sm font-medium hover:text-primary transition hidden sm:block">
-                    Passport
+                  <Link to="/passport" title="Passport" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
+                    <CreditCard className="h-5 w-5 sm:hidden" />
+                    <span className="hidden sm:inline">Passport</span>
                   </Link>
                   <div className="flex items-center gap-3">
                     <div className="hidden sm:flex items-center gap-1 text-sm font-medium text-muted-foreground" title="Trust Score">
@@ -69,10 +77,12 @@ export function Navbar() {
                     </div>
                     <button
                       onClick={() => setWithdrawOpen(true)}
-                      className="flex items-center gap-2 rounded-full bg-primary/10 hover:bg-primary/20 transition px-3 py-1.5 text-sm font-semibold text-primary"
+                      className="flex items-center gap-2 rounded-full bg-primary/10 hover:bg-primary/20 transition px-3 py-1.5 text-xs sm:text-sm font-semibold text-primary"
                     >
                       <Wallet className="h-4 w-4" />
-                      <AnimatedNumber value={user.walletBalance} />
+                      <span className="hidden sm:inline">
+                        <AnimatedNumber value={user.walletBalance} />
+                      </span>
                     </button>
                   </div>
                 </>

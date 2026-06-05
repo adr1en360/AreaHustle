@@ -35,7 +35,7 @@ export function AuthModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-up backdrop-blur-sm bg-background/80">
-      <div className="relative w-full max-w-md rounded-3xl bg-card shadow-elevated p-8 border">
+      <div className="relative w-full max-w-md rounded-3xl bg-card shadow-elevated p-6 sm:p-8 border">
         <button onClick={onClose} className="absolute right-6 top-6 text-muted-foreground hover:text-foreground transition">
           <X className="h-5 w-5" />
         </button>

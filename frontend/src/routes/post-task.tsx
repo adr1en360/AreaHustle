@@ -40,9 +40,9 @@ function PostTask() {
           <button
             onClick={start}
             disabled={phase !== "idle" && phase !== "locked"}
-            className="relative h-32 w-32 rounded-full bg-voice text-voice-foreground shadow-elevated flex items-center justify-center hover:scale-105 transition disabled:opacity-90"
+            className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-voice text-voice-foreground shadow-elevated flex items-center justify-center hover:scale-105 transition disabled:opacity-90"
           >
-            <Mic className="h-10 w-10" />
+            <Mic className="h-8 w-8 sm:h-10 sm:w-10" />
             {(phase === "recording" || phase === "processing") && (
               <>
                 <span className="absolute inset-0 rounded-full bg-voice animate-voice-pulse" />

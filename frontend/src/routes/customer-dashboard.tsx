@@ -43,11 +43,11 @@ function CustomerDashboard() {
       <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
         <div>
           <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Customer Dashboard</div>
-          <h1 className="font-display text-4xl font-bold tracking-tight">Manage your requests.</h1>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Manage your requests.</h1>
         </div>
         <button
           onClick={() => nav({ to: "/post-task" })}
-          className="inline-flex items-center gap-2 rounded-full bg-voice text-voice-foreground px-5 py-3 text-sm font-semibold shadow-soft hover:opacity-95 transition"
+          className="inline-flex items-center justify-center w-full sm:w-auto gap-2 rounded-full bg-voice text-voice-foreground px-5 py-3 text-sm font-semibold shadow-soft hover:opacity-95 transition"
         >
           <Plus className="h-4 w-4" /> Post New Task
         </button>
@@ -110,14 +110,14 @@ function CustomerDashboard() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {job.state === "pending" && <div className="text-sm text-muted-foreground italic px-4">Waiting for Hustler...</div>}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {job.state === "pending" && <div className="text-sm text-muted-foreground italic sm:px-4">Waiting for Hustler...</div>}
                 {job.state === "accepted" && (
                   <div className="flex items-center gap-3">
                     <div className="text-sm">
                       Assigned: <span className="font-semibold">{job.hustler}</span>
                     </div>
-                    <button className="h-10 w-10 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
+                    <button className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
                       <Phone className="h-4 w-4" />
                     </button>
                   </div>
@@ -125,13 +125,13 @@ function CustomerDashboard() {
                 {job.state === "completed" && (
                   <button
                     onClick={() => handleConfirm(job.id)}
-                    className="rounded-full bg-[#183620] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-soft animate-pulse"
+                    className="w-full sm:w-auto justify-center rounded-full bg-[#183620] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-soft animate-pulse"
                   >
                     <CheckCircle className="h-4 w-4" /> Confirm & Release Escrow
                   </button>
                 )}
                 {job.state === "closed" && (
-                  <div className="text-sm text-success font-semibold px-4 flex items-center gap-1">
+                  <div className="text-sm text-success font-semibold sm:px-4 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" /> Job Done
                   </div>
                 )}

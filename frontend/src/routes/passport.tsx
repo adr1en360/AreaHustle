@@ -58,7 +58,7 @@ function PassportPage() {
             <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-4 font-semibold">
               <Wallet className="h-4 w-4" /> Available Balance
             </div>
-            <div className="font-display text-5xl font-bold text-foreground">
+            <div className="font-display text-4xl sm:text-5xl font-bold text-foreground">
               ₦<AnimatedNumber value={user.walletBalance} />
             </div>
           </div>
@@ -77,7 +77,7 @@ function PassportPage() {
               <ShieldCheck className="h-4 w-4" /> AreaHustle Trust Score
             </div>
             <div className="flex items-end gap-3">
-              <div className="font-display text-6xl font-bold text-[#E2F1E6]">
+              <div className="font-display text-5xl sm:text-6xl font-bold text-[#E2F1E6]">
                 <AnimatedNumber value={user.trustScore} />
               </div>
               <div className="text-[#A3C9AE] text-sm mb-2">/ 1000</div>
@@ -91,15 +91,15 @@ function PassportPage() {
 
       {/* Micro Loan Module */}
       {loan && (
-        <div className="rounded-3xl bg-muted/30 border border-dashed border-primary/20 p-8 mb-8 flex items-center justify-between">
-          <div>
+        <div className="rounded-3xl bg-muted/30 border border-dashed border-primary/20 p-8 mb-8 flex flex-col text-center sm:text-left sm:flex-row items-center justify-between gap-4">
+          <div className="flex-1">
             <h3 className="font-display text-xl font-bold flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" /> Active Micro-Loan
             </h3>
             <p className="text-sm text-muted-foreground mt-1">Automatically sweeping {loan.sweep_percentage * 100}% of completed gigs.</p>
           </div>
-          <div className="text-right">
-            <div className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Remaining Balance</div>
+          <div className="sm:text-right">
+            <div className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Remaining</div>
             <div className="font-display text-2xl font-bold text-destructive">{naira(loan.remaining_balance)}</div>
           </div>
         </div>
@@ -111,7 +111,10 @@ function PassportPage() {
       </h2>
       <div className="space-y-4">
         {txns.map((t, idx) => (
-          <div key={idx} className="rounded-3xl bg-card border shadow-soft p-5 flex items-center justify-between">
+          <div
+            key={idx}
+            className="rounded-3xl bg-card border shadow-soft p-5 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between w-full"
+          >
             <div className="flex items-center gap-4">
               <div
                 className={`h-12 w-12 rounded-2xl flex items-center justify-center ${t.amount > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}
@@ -123,7 +126,7 @@ function PassportPage() {
                 <div className="text-xs text-muted-foreground">{t.date}</div>
               </div>
             </div>
-            <div className={`font-display text-xl font-bold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+            <div className={`font-display text-xl font-bold self-end sm:self-center ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
               {t.amount > 0 ? "+" : ""}
               {naira(t.amount)}
             </div>
