@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logo from "@/assets/logo.png";
 
 export function PageLoader() {
   const [show, setShow] = useState(true);
@@ -23,10 +24,10 @@ export function PageLoader() {
     >
       <div className="flex flex-col items-center gap-5">
         <div className="relative">
-          <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center shadow-elevated">
-            <span className="text-primary-foreground font-display font-bold text-xl">A</span>
+          <span className="absolute inset-0 rounded-2xl bg-primary/30 animate-voice-pulse" />
+          <div className="relative h-16 w-16 rounded-2xl bg-card border flex items-center justify-center shadow-elevated p-3">
+            <img src={logo} alt="AreaHustle Loader" className="h-full w-full object-contain" />
           </div>
-          <span className="absolute inset-0 rounded-2xl bg-primary animate-voice-pulse" />
         </div>
         <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -40,9 +41,7 @@ export function PageLoader() {
             />
           ))}
         </div>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-          AreaHustle
-        </div>
+        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">AreaHustle</div>
       </div>
     </div>
   );

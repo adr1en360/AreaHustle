@@ -91,6 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://areahustle.com/banner-image.png" },
     ],
     links: [
+      { rel: "icon", href: "/favicon.png" },
       { rel: "canonical", href: "https://areahustle.com/" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

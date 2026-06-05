@@ -5,6 +5,7 @@ import { naira } from "@/lib/format";
 import { Wallet, LogOut, Shield, LayoutDashboard, Briefcase, CreditCard, PlusCircle } from "lucide-react";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { AuthModal } from "./AuthModal";
+import logo from "@/assets/logo.png"; // Change to .png or .jpg depending on your file
 import { toast } from "sonner";
 
 export function Navbar() {
@@ -36,8 +37,9 @@ export function Navbar() {
     <>
       <nav className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="font-display text-xl font-bold tracking-tight">
-            AreaHustle.
+          <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tight hover:opacity-90 transition">
+            <img src={logo} alt="AreaHustle Logo" className="h-8 w-auto object-contain" />
+            <span className="hidden sm:inline">AreaHustle.</span>
           </Link>
 
           {isLoggedIn ? (
