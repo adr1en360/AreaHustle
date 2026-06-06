@@ -14,12 +14,15 @@ export function removeToken() {
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = getToken();
-  const headers: HeadersInit = {
-    ...(options.headers || {}),
+  const headers: Record<string, string> = {
+    ...((options.headers as Record<string, string>) || {}),
   };
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+  }
+  if (!headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -27,12 +30,96 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
     headers,
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.detail || "API request failed");
-  }
+  return response;
+}
 
-  return response.json();
+// Tuma this is the TASKS API calls so just continue based on the schema 
+
+export async function apiCreateTask(data: { category: string; description: string; budget: number; neighbourhood: string }) {
+  console.log("[apiCreateTask] Requesting task creation:", data);
+  const response = await fetchApi("/tasks/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Task creation failed");
+  }
+  return responseData;
+}
+
+export async function apiListTasks(filters?: { neighbourhood?: string; category?: string; status?: string }) {
+  console.log("[apiListTasks] Requesting task list with filters:", filters);
+  const params = new URLSearchParams();
+  if (filters?.neighbourhood) params.append("neighbourhood", filters.neighbourhood);
+  if (filters?.category) params.append("category", filters.category);
+  if (filters?.status) params.append("status", filters.status);
+
+  const queryStr = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetchApi(`/tasks/${queryStr}`, { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to list tasks");
+  }
+  return responseData;
+}
+
+export async function apiMyTasks() {
+  console.log("[apiMyTasks] Requesting user tasks");
+  const response = await fetchApi("/tasks/my-tasks", { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to fetch user tasks");
+  }
+  return responseData;
+}
+
+export async function apiMatchTask(taskId: string) {
+  console.log("[apiMatchTask] Matching task ID:", taskId);
+  const response = await fetchApi(`/tasks/${taskId}/match`, { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Task matching failed");
+  }
+  return responseData;
+}
+
+export async function apiActivateTask(taskId: string) {
+  console.log("[apiActivateTask] Activating task ID:", taskId);
+  const response = await fetchApi(`/tasks/${taskId}/activate`, { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Task activation failed");
+  }
+  return responseData;
+}
+
+export async function apiCompleteTask(taskId: string) {
+  console.log("[apiCompleteTask] Completing task ID:", taskId);
+  const response = await fetchApi(`/tasks/${taskId}/complete`, { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Task completion failed");
+  }
+  return responseData;
+}
+
+export async function apiVoiceToIntent(audioUrl: string) {
+  console.log("[apiVoiceToIntent] Extracting intent from audioUrl:", audioUrl);
+  // The backend route uses audio_url as query param
+  const response = await fetchApi(`/tasks/voice-to-intent?audio_url=${encodeURIComponent(audioUrl)}`, { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Voice-to-intent failed");
+  }
+  return responseData;
 }
 
 // Auth
@@ -61,25 +148,7 @@ export const apiRegister = async (data: { email: string; password: string; role:
 
 export const apiGetMe = () => fetchApi("/auth/me");
 
-// Tasks
-export const apiCreateTask = (data: { category: string; description: string; budget: number; neighbourhood: string }) => {
-  return fetchApi("/tasks/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-};
 
-export const apiGetTasks = (status?: string, neighbourhood?: string) => {
-  let url = "/tasks/?";
-  if (status) url += `status=${status}&`;
-  if (neighbourhood) url += `neighbourhood=${neighbourhood}`;
-  return fetchApi(url);
-};
-
-export const apiMatchTask = (taskId: string) => fetchApi(`/tasks/${taskId}/match`, { method: "POST" });
-export const apiActivateTask = (taskId: string) => fetchApi(`/tasks/${taskId}/activate`, { method: "POST" });
-export const apiCompleteTask = (taskId: string) => fetchApi(`/tasks/${taskId}/complete`, { method: "POST" });
 
 // Passport & Finance
 export const apiGetPassport = () => fetchApi("/passport/me");
