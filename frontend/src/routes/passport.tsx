@@ -107,10 +107,10 @@ function PassportPage() {
       <div className="sticky top-0 z-40 bg-[#F9F9F8]/80 backdrop-blur-md border-b px-4 sm:px-6 lg:px-8 py-4">
         <div className="mx-auto max-w-5xl flex justify-between items-center">
           <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D3B2E]">Financial Passport</h1>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="text-right">
               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Total Wallet Balance</div>
-              <div className="font-display font-bold text-lg text-[#0D3B2E]">₦42,000</div>
+              <div className="font-display font-bold text-base sm:text-lg text-[#0D3B2E]">₦42,000</div>
             </div>
             <div className="h-10 w-10 rounded-full bg-[#0D3B2E] text-white flex items-center justify-center font-bold shadow-soft">EA</div>
           </div>
