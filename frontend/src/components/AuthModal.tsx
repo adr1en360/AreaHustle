@@ -1,246 +1,133 @@
-import { useState, useEffect } from "react";
-import { useAuth, Role } from "@/lib/auth-context";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { X, Briefcase, User } from "lucide-react";
 
-interface AuthModalProps {
-  open: boolean;
-  onClose: () => void;
-  initialRole?: Role;
-  initialMode?: "login" | "register";
-}
-
-export function AuthModal({ open, onClose, initialRole = "customer", initialMode = "register" }: AuthModalProps) {
-  const [mode, setMode] = useState<"login" | "register">(initialMode);
-  const [step, setStep] = useState(1);
-  const [selectedRole, setSelectedRole] = useState<Role>(initialRole);
+export function AuthModal({ open, onClose, initialRole, initialMode }: any) {
   const { login, register } = useAuth();
-  const navigate = useNavigate();
-
+  const [mode, setMode] = useState(initialMode || "login");
+  const [role, setRole] = useState(initialRole || "customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [age, setAge] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [nin, setNin] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const nav = useNavigate();
 
   useEffect(() => {
     if (open) {
-      setSelectedRole(initialRole);
-      setMode(initialMode);
-      setStep(1);
+      setMode(initialMode || "login");
+      setRole(initialRole || "customer");
     }
-  }, [initialRole, initialMode, open]);
+  }, [open, initialMode, initialRole]);
 
   if (!open) return null;
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    register(selectedRole, { email, password, name: fullName, age, phoneNumber, nin });
-    onClose();
-    navigate({ to: selectedRole === "customer" ? "/post-task" : "/jobs" });
-  };
+    setLoading(true);
+    try {
+      let loggedInUser;
+      if (mode === "login") {
+        loggedInUser = await login({ username: email, password });
+        toast.success("Logged in successfully!");
+      } else {
+        loggedInUser = await register({ email, password, name, role, language_preference: "english" });
+        toast.success("Registered successfully!");
+      }
+      onClose();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    login(email, selectedRole);
-    onClose();
-    navigate({ to: selectedRole === "customer" ? "/customer-dashboard" : "/jobs" });
+      const userRole = loggedInUser?.role || role;
+      const targetRoute = mode === "register" && userRole === "hustler" ? "/onboarding" : userRole === "customer" ? "/customer-dashboard" : "/jobs";
+      nav({ to: targetRoute });
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200 font-sans">
-      <div className="relative w-full max-w-md rounded-[2rem] bg-[#F9F9F8] shadow-elevated overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border/50 bg-[#F9F9F8]">
-          <h2 className="font-display text-2xl font-bold text-[#0D3B2E]">{mode === "login" ? "Welcome Back" : "Join AreaHustle"}</h2>
-          <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5 transition">
-            <X className="h-5 w-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        <div className="flex border-b border-border/50 bg-[#F9F9F8]">
-          <button
-            onClick={() => setMode("login")}
-            className={`flex-1 py-3 text-sm font-bold transition ${mode === "login" ? "text-[#0D3B2E] border-b-2 border-[#0D3B2E]" : "text-muted-foreground"}`}
-          >
-            Log In
-          </button>
-          <button
-            onClick={() => {
-              setMode("register");
-              setStep(1);
-            }}
-            className={`flex-1 py-3 text-sm font-bold transition ${mode === "register" ? "text-[#0D3B2E] border-b-2 border-[#0D3B2E]" : "text-muted-foreground"}`}
-          >
-            Create Account
-          </button>
-        </div>
-
-        <div className="p-6 max-h-[70vh] overflow-y-auto bg-[#F9F9F8]">
-          {mode === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="flex gap-2 p-1 bg-black/5 rounded-xl mb-4 border">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("customer")}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${selectedRole === "customer" ? "bg-white shadow-sm text-[#0D3B2E]" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("hustler")}
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${selectedRole === "hustler" ? "bg-white shadow-sm text-[#0D3B2E]" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  Hustler
-                </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-in fade-in">
+      <div className="relative w-full max-w-md rounded-3xl bg-card border shadow-elevated p-8">
+        <button onClick={onClose} className="absolute right-6 top-6 text-muted-foreground hover:text-foreground">
+          <X className="h-5 w-5" />
+        </button>
+        <h2 className="font-display text-2xl font-bold mb-2">{mode === "login" ? "Welcome Back" : "Join AreaHustle"}</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {mode === "login" ? "Sign in to your account to continue" : "Create an account to get started"}
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === "register" && (
+            <>
+              <div>
+                <label className="text-xs font-bold uppercase text-muted-foreground">I want to</label>
+                <div className="mt-1 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRole("customer")}
+                    className={`flex-1 rounded-xl border py-2.5 text-sm font-semibold transition ${role === "customer" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground hover:bg-muted"}`}
+                  >
+                    Hire
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("hustler")}
+                    className={`flex-1 rounded-xl border py-2.5 text-sm font-semibold transition ${role === "hustler" ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground hover:bg-muted"}`}
+                  >
+                    Work
+                  </button>
+                </div>
               </div>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="••••••••"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-[#0D3B2E] py-3.5 text-sm font-bold text-white shadow-soft hover:bg-[#0D3B2E]/90 transition mt-2"
-              >
-                Log In
-              </button>
-            </form>
-          ) : step === 1 ? (
-            <div className="space-y-4">
-              <p className="text-sm font-semibold text-muted-foreground mb-4">How do you want to use AreaHustle?</p>
-              <button
-                onClick={() => setSelectedRole("customer")}
-                className={`w-full flex items-center gap-4 rounded-2xl border p-4 transition ${selectedRole === "customer" ? "border-[#0D3B2E] bg-[#0D3B2E]/5" : "hover:border-[#0D3B2E]/40 bg-[#F9F9F8]"}`}
-              >
-                <div
-                  className={`h-10 w-10 flex items-center justify-center rounded-full ${selectedRole === "customer" ? "bg-[#0D3B2E] text-white" : "bg-white text-muted-foreground border shadow-sm"}`}
-                >
-                  <User className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-[#0D3B2E]">I want to Hire</div>
-                  <div className="text-xs font-medium text-muted-foreground">Post tasks and find trusted hustlers.</div>
-                </div>
-              </button>
-              <button
-                onClick={() => setSelectedRole("hustler")}
-                className={`w-full flex items-center gap-4 rounded-2xl border p-4 transition ${selectedRole === "hustler" ? "border-[#0D3B2E] bg-[#0D3B2E]/5" : "hover:border-[#0D3B2E]/40 bg-[#F9F9F8]"}`}
-              >
-                <div
-                  className={`h-10 w-10 flex items-center justify-center rounded-full ${selectedRole === "hustler" ? "bg-[#0D3B2E] text-white" : "bg-white text-muted-foreground border shadow-sm"}`}
-                >
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-[#0D3B2E]">I want to Hustle</div>
-                  <div className="text-xs font-medium text-muted-foreground">Accept jobs and build your financial passport.</div>
-                </div>
-              </button>
-              <button
-                onClick={() => setStep(2)}
-                className="w-full rounded-full bg-[#0D3B2E] py-3.5 text-sm font-bold text-white shadow-soft hover:bg-[#0D3B2E]/90 transition mt-4"
-              >
-                Continue
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleRegister} className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
+                <label className="text-xs font-bold uppercase text-muted-foreground">Full Name</label>
                 <input
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="e.g. John Doe"
+                  className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
                 />
               </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Age</label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    required
-                    className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                    placeholder="18+"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required
-                    className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                    placeholder="080..."
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">NIN (National Identity Number)</label>
-                <input
-                  type="text"
-                  value={nin}
-                  onChange={(e) => setNin(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="11 digits"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1 w-full rounded-xl border border-border/60 bg-[#F9F9F8] px-4 py-3 text-sm outline-none focus:border-[#0D3B2E] focus:bg-white transition"
-                  placeholder="••••••••"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-[#0D3B2E] py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90 transition mt-2"
-              >
-                Verify & Register
-              </button>
-            </form>
+            </>
           )}
-        </div>
+          <div>
+            <label className="text-xs font-bold uppercase text-muted-foreground">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase text-muted-foreground">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold text-primary-foreground flex justify-center items-center gap-2 mt-4"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "login" ? "Login" : "Register"}
+          </button>
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => setMode(mode === "login" ? "register" : "login")}
+              className="text-sm text-muted-foreground hover:text-foreground font-medium transition"
+            >
+              {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

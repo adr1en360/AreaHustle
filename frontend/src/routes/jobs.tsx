@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth, type Job } from "@/lib/auth-context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
 import { naira } from "@/lib/format";
 import { MapPin, Lock, Sparkles, Phone, CheckCircle, Search, Mic, X } from "lucide-react";
 import { toast } from "sonner";
@@ -11,37 +13,95 @@ export const Route = createFileRoute("/jobs")({
 });
 
 function Jobs() {
-  const { isLoggedIn, userRole, jobs, acceptJob, markJobDone, user } = useAuth();
+  const { isLoggedIn, isLoading: authLoading, userRole, user, updateDemoBalance, addDemoTransaction } = useAuth();
   const nav = useNavigate();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<"market" | "my-gigs">("market");
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
   const [selectedJob, setSelectedJob] = useState<any>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isLoggedIn || userRole !== "hustler") nav({ to: "/" });
-  }, [isLoggedIn, userRole, nav]);
+  }, [isLoggedIn, userRole, authLoading, nav]);
 
-  const marketJobs = jobs?.filter((j) => j.state === "pending") || [];
-  const myGigs = jobs?.filter((j) => j.state !== "pending" && j.state !== "done") || [];
+  const { data: marketJobs = [], isLoading: loadingMarket } = useQuery({
+    queryKey: ["marketJobs", location],
+    queryFn: () => api.getTasks({ status: "open", neighbourhood: location || undefined }),
+    enabled: isLoggedIn && tab === "market",
+  });
+
+  const { data: myGigs = [], isLoading: loadingMyGigs } = useQuery({
+    queryKey: ["myGigs"],
+    queryFn: () => api.getMyTasks(),
+    enabled: isLoggedIn && tab === "my-gigs",
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: (id: string) => api.matchTask(id),
+    onSuccess: () => {
+      toast.success("Job accepted! Contact details unlocked.");
+      queryClient.invalidateQueries({ queryKey: ["marketJobs"] });
+      queryClient.invalidateQueries({ queryKey: ["myGigs"] });
+      setTab("my-gigs");
+    },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id: string) => api.activateTask(id),
+    onSuccess: () => {
+      toast.success("Job started! You can now mark it as done when finished.");
+      queryClient.invalidateQueries({ queryKey: ["myGigs"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to start job.");
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: (id: string) => api.completeTask(id),
+    onSuccess: (data, variables) => {
+      toast.success("Job marked as done! Payment successful!.");
+
+      const job = myGigs.find((j: any) => (j.id || j._id) == variables);
+      if (job) {
+        const amount = Number(job.budget) || 0;
+        updateDemoBalance("customer", -amount);
+        updateDemoBalance("hustler", amount);
+        addDemoTransaction({
+          amount: amount,
+          desc: job.title || job.category || "Job completed",
+          location: job.location || job.neighbourhood || "Local",
+          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["myGigs"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to mark job as done.");
+    },
+  });
 
   const handleAccept = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    acceptJob(id);
-    toast.success("Job accepted! Contact details unlocked.");
-    setTab("my-gigs");
+    acceptMutation.mutate(id);
+  };
+
+  const handleActivate = (id: string) => {
+    activateMutation.mutate(id);
   };
 
   const handleMarkDone = (id: string) => {
-    markJobDone(id);
-    toast.success("Job marked as done! Awaiting customer confirmation.");
+    completeMutation.mutate(id);
   };
 
   const filteredMarket = marketJobs.filter((j) => {
     const matchKeyword = keyword
       ? (j as any).title?.toLowerCase().includes(keyword.toLowerCase()) || j.category?.toLowerCase().includes(keyword.toLowerCase())
       : true;
-    const matchLocation = location ? j.location?.toLowerCase().includes(location.toLowerCase()) : true;
+    const matchLocation = location ? (j.location || j.neighbourhood)?.toLowerCase().includes(location.toLowerCase()) : true;
     return matchKeyword && matchLocation;
   });
 
@@ -96,12 +156,12 @@ function Jobs() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredMarket.length === 0 && (
               <div className="col-span-full py-12 text-center text-muted-foreground border border-dashed rounded-3xl">
-                No available jobs match your search.
+                {loadingMarket ? "Loading open gigs..." : "No available jobs match your search."}
               </div>
             )}
             {filteredMarket.map((j, i) => (
               <article
-                key={j.id}
+                key={j.id || j._id || i}
                 className="rounded-3xl bg-card border shadow-soft hover:shadow-elevated transition p-6 flex flex-col animate-fade-up relative overflow-hidden"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
@@ -110,7 +170,7 @@ function Jobs() {
                 {j.description && <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{j.description}</p>}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground mb-5">
                   <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {j.location}
+                    <MapPin className="h-3 w-3" /> {j.location || j.neighbourhood}
                   </span>
                 </div>
                 <div className="border-t -mx-6 mb-4" />
@@ -130,7 +190,7 @@ function Jobs() {
                       View Details
                     </button>
                     <button
-                      onClick={(e) => handleAccept(e, j.id)}
+                      onClick={(e) => handleAccept(e, j.id || j._id)}
                       className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 transition"
                     >
                       <Lock className="h-3.5 w-3.5" /> Accept
@@ -150,44 +210,71 @@ function Jobs() {
               You have no active gigs. Head to the market!
             </div>
           )}
-          {myGigs.map((j) => (
-            <div
-              key={j.id}
-              className="rounded-3xl bg-card border shadow-soft p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-up"
-            >
-              <div>
-                <span
-                  className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 inline-block ${j.state === "accepted" ? "bg-primary/10 text-primary" : "bg-orange-500/10 text-orange-600"}`}
-                >
-                  {j.state === "accepted" ? "Active" : "Awaiting Confirmation"}
-                </span>
-                <h3 className="font-display text-xl font-bold">{(j as any).title || j.category}</h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                  <span className="flex items-center gap-1 text-foreground">
-                    <MapPin className="h-4 w-4 text-primary" /> Exact Location Revealed
+          {myGigs.map((j, i) => {
+            const status = j.status || j.state;
+            return (
+              <div
+                key={j.id || j._id || i}
+                className="rounded-3xl bg-card border shadow-soft p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-up"
+              >
+                <div>
+                  <span
+                    className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 inline-block ${status === "accepted" || status === "matched" || status === "in_progress" || status === "active" ? "bg-primary/10 text-primary" : status === "awaiting_confirmation" ? "bg-orange-500/10 text-orange-600" : "bg-success/10 text-success"}`}
+                  >
+                    {status === "accepted" || status === "matched"
+                      ? "Matched"
+                      : status === "in_progress" || status === "active"
+                        ? "In Progress"
+                        : status === "awaiting_confirmation"
+                          ? "Awaiting Confirmation"
+                          : "Completed"}
                   </span>
-                  <span className="flex items-center gap-1 font-semibold text-success">{naira(j.budget)} Locked</span>
+                  <h3 className="font-display text-xl font-bold">{(j as any).title || j.category}</h3>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                    <span className="flex items-center gap-1 text-foreground">
+                      <MapPin className="h-4 w-4 text-primary" /> Exact Location Revealed
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-success">{naira(j.budget)} Locked</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
+                  {status === "accepted" || status === "matched" ? (
+                    <>
+                      <button className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition">
+                        <Phone className="h-4 w-4" /> Call Customer
+                      </button>
+                      <button
+                        onClick={() => handleActivate(j.id || j._id)}
+                        disabled={activateMutation.isPending}
+                        className="flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-95 transition"
+                      >
+                        Start Job
+                      </button>
+                    </>
+                  ) : status === "in_progress" || status === "active" ? (
+                    <>
+                      <button className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition">
+                        <Phone className="h-4 w-4" /> Call Customer
+                      </button>
+                      <button
+                        onClick={() => handleMarkDone(j.id || j._id)}
+                        disabled={completeMutation.isPending}
+                        className="flex items-center justify-center gap-2 rounded-full bg-success text-success-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-95 transition"
+                      >
+                        <CheckCircle className="h-4 w-4" /> Mark as Done
+                      </button>
+                    </>
+                  ) : status === "awaiting_confirmation" ? (
+                    <div className="text-sm text-muted-foreground italic px-4">Waiting for customer to release escrow...</div>
+                  ) : (
+                    <div className="text-sm text-success font-semibold px-4 flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" /> Payment Received
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
-                {j.state === "accepted" ? (
-                  <>
-                    <button className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition">
-                      <Phone className="h-4 w-4" /> Call Customer
-                    </button>
-                    <button
-                      onClick={() => handleMarkDone(j.id)}
-                      className="flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-95 transition"
-                    >
-                      <CheckCircle className="h-4 w-4" /> Mark as Done
-                    </button>
-                  </>
-                ) : (
-                  <div className="text-sm text-muted-foreground italic px-4">Waiting for customer to release escrow...</div>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -200,7 +287,7 @@ function Jobs() {
             <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{selectedJob.category}</div>
             <h2 className="font-display text-2xl font-bold mb-4">{selectedJob.title || selectedJob.category}</h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <MapPin className="h-4 w-4" /> {selectedJob.location}
+              <MapPin className="h-4 w-4" /> {selectedJob.location || selectedJob.neighbourhood}
             </div>
             <div className="bg-muted/30 rounded-2xl p-4 mb-6 text-sm text-foreground leading-relaxed">
               {selectedJob.description || "No detailed description provided by the customer."}
@@ -217,7 +304,7 @@ function Jobs() {
                 <button
                   onClick={(e) => {
                     setSelectedJob(null);
-                    handleAccept(e, selectedJob.id);
+                    handleAccept(e, selectedJob.id || selectedJob._id);
                   }}
                   className="flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-95 transition"
                 >

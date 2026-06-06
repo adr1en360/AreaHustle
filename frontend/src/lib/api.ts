@@ -1,113 +1,82 @@
-const API_URL = "http://localhost:8000/api/v1";
-
-export function getToken() {
-  return localStorage.getItem("area_token");
-}
-
-export function setToken(token: string) {
-  localStorage.setItem("area_token", token);
-}
-
-export function removeToken() {
-  localStorage.removeItem("area_token");
-}
+const BASE_URL = "https://areahustle.onrender.com/api/v1";
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
-  const token = getToken();
-  const headers: HeadersInit = {
-    ...(options.headers || {}),
+  const token = localStorage.getItem("token");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (options.body instanceof URLSearchParams) {
+    delete headers["Content-Type"];
+    headers["Content-Type"] = "application/x-www-form-urlencoded";
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.detail || "API request failed");
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+  } catch (error: any) {
+    // Catches net::ERR_CONNECTION_CLOSED, CORS drops, and network offline issues
+    throw new Error(
+      "Unable to connect to the backend. It might be waking up from sleep (Render free tier) or is currently offline. Please wait 30 seconds and try again.",
+    );
   }
 
-  return response.json();
+  if (!res.ok) {
+    let errData;
+    try {
+      errData = await res.json();
+    } catch (e) {}
+
+    // FastAPI Validation Errors are arrays, standard HTTPExceptions are strings.
+    let errorMessage = res.statusText;
+    if (typeof errData?.detail === "string") {
+      errorMessage = errData.detail;
+    } else if (Array.isArray(errData?.detail)) {
+      errorMessage = errData.detail.map((err: any) => `${err.loc?.slice(-1)}: ${err.msg}`).join(" | ");
+    }
+
+    throw new Error(errorMessage || "An API Error Occurred");
+  }
+  return res.json();
 }
 
-// Auth
-export const apiLogin = async (username: string, password: string) => {
-  const params = new URLSearchParams();
-  params.append("username", username);
-  params.append("password", password);
+export const api = {
+  // Auth
+  login: (data: any) => {
+    const params = new URLSearchParams();
+    params.append("username", data.username);
+    params.append("password", data.password);
+    return fetchApi("/auth/login", { method: "POST", body: params });
+  },
+  register: (data: any) => fetchApi("/auth/register", { method: "POST", body: JSON.stringify(data) }),
+  getMe: () => fetchApi("/auth/me"),
 
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: params,
-  });
+  // Users / Hustler Profile
+  getHustlerProfile: () => fetchApi("/users/hustler-profile"),
+  createHustlerProfile: (data: any) => fetchApi("/users/hustler-profile", { method: "POST", body: JSON.stringify(data) }),
 
-  if (!res.ok) throw new Error("Login failed");
-  return res.json();
+  // Tasks
+  createTask: (data: any) => fetchApi("/tasks/", { method: "POST", body: JSON.stringify(data) }),
+  updateTask: (id: string, data: any) => fetchApi(`/tasks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  getTasks: (params: Record<string, any> = {}) => {
+    const cleanParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== "") {
+        cleanParams[key] = String(value);
+      }
+    }
+    const query = new URLSearchParams(cleanParams).toString();
+    return fetchApi(`/tasks/${query ? `?${query}` : ""}`);
+  },
+  getMyTasks: () => fetchApi("/tasks/my-tasks"),
+  matchTask: (id: string) => fetchApi(`/tasks/${id}/match`, { method: "POST" }),
+  activateTask: (id: string) => fetchApi(`/tasks/${id}/activate`, { method: "POST" }),
+  completeTask: (id: string) => fetchApi(`/tasks/${id}/complete`, { method: "POST" }),
+  voiceToIntent: (audioUrl: string) => fetchApi(`/tasks/voice-to-intent?audio_url=${encodeURIComponent(audioUrl)}`, { method: "POST" }),
+
+  // Passport & Transactions
+  getPassport: () => fetchApi("/passport/me"),
+  getTransactions: () => fetchApi("/transactions/"),
 };
-
-export const apiRegister = async (data: { email: string; password: string; role: string; name: string }) => {
-  return fetchApi("/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-};
-
-export const apiGetMe = () => fetchApi("/auth/me");
-
-// Tasks
-export const apiCreateTask = (data: { category: string; description: string; budget: number; neighbourhood: string }) => {
-  return fetchApi("/tasks/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-};
-
-export const apiGetTasks = (status?: string, neighbourhood?: string) => {
-  let url = "/tasks/?";
-  if (status) url += `status=${status}&`;
-  if (neighbourhood) url += `neighbourhood=${neighbourhood}`;
-  return fetchApi(url);
-};
-
-export const apiMatchTask = (taskId: string) => fetchApi(`/tasks/${taskId}/match`, { method: "POST" });
-export const apiActivateTask = (taskId: string) => fetchApi(`/tasks/${taskId}/activate`, { method: "POST" });
-export const apiCompleteTask = (taskId: string) => fetchApi(`/tasks/${taskId}/complete`, { method: "POST" });
-
-// Passport & Finance
-export const apiGetPassport = () => fetchApi("/passport/me");
-export const apiGetTransactions = () => fetchApi("/passport/transactions");
-export const apiDemoSweep = (jobAmount: number) => {
-  return fetchApi("/passport/demo/complete-job-sweep", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ job_amount: jobAmount }),
-  });
-};
-
-// Loans
-export const apiCreateLoan = (principal: number, sweepPercentage: number) => {
-  return fetchApi("/loans/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ principal, sweep_percentage: sweepPercentage }),
-  });
-};
-export const apiGetActiveLoan = () => fetchApi("/loans/active");
-
-// Users / Hustlers
-export const apiCreateHustlerProfile = (data: { service_areas: string[]; categories: string[] }) => {
-  return fetchApi("/users/hustler-profile", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-};
-export const apiGetNearbyHustlers = (neighbourhood: string) => fetchApi(`/users/nearby-hustlers?neighbourhood=${neighbourhood}`);

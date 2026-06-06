@@ -9,16 +9,20 @@ import logo from "@/assets/logo.png"; // Change to .png or
 import { toast } from "sonner";
 
 export function Navbar() {
-  const { isLoggedIn, userRole, walletBalance, trustScore, logout } = useAuth();
+  const { isLoggedIn, userRole, user, logout, updateDemoBalance } = useAuth();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
+  const walletBalance = user?.wallet_balance || 0;
+  const trustScore = user?.trust_score || 0;
+
   const handleWithdraw = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseInt(withdrawAmount);
     if (amt && amt <= walletBalance) {
+      updateDemoBalance(userRole as string, -amt);
       toast.success(`Successfully withdrew ${naira(amt)} to bank.`);
       setWithdrawOpen(false);
       setWithdrawAmount("");

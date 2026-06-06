@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { Check, Globe, MapPin } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { Check, Globe, MapPin, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Get Started · AreaHustle" }] }),
@@ -15,21 +18,47 @@ const LANGS = [
 ] as const;
 
 const AREAS = [
-  "Lekki Phase 1","Lekki Phase 2","Victoria Island","Ikoyi","Yaba","Surulere",
-  "Ikeja GRA","Ajah","Magodo","Gbagada","Festac","Ikorodu",
+  "Lekki Phase 1",
+  "Lekki Phase 2",
+  "Victoria Island",
+  "Ikoyi",
+  "Yaba",
+  "Surulere",
+  "Ikeja GRA",
+  "Ajah",
+  "Magodo",
+  "Gbagada",
+  "Festac",
+  "Ikorodu",
 ];
 
 function Onboarding() {
-  const { isLoggedIn, language, setLanguage, areas, setAreas } = useAuth();
+  const { isLoggedIn, isLoading: authLoading, language, setLanguage, areas, setAreas } = useAuth();
   const nav = useNavigate();
   const [step, setStep] = useState(1);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isLoggedIn) nav({ to: "/" });
-  }, [isLoggedIn, nav]);
+  }, [isLoggedIn, authLoading, nav]);
 
   const toggleArea = (a: string) => {
     setAreas(areas.includes(a) ? areas.filter((x) => x !== a) : [...areas, a]);
+  };
+
+  const createProfileMutation = useMutation({
+    mutationFn: (data: any) => api.createHustlerProfile(data),
+    onSuccess: () => {
+      toast.success("Profile fully set up!");
+      nav({ to: "/jobs" });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to create profile");
+    },
+  });
+
+  const handleComplete = () => {
+    createProfileMutation.mutate({ service_areas: areas, categories: ["General", "Cleaning", "Repairs", "Errands"] });
   };
 
   return (
@@ -67,10 +96,7 @@ function Onboarding() {
                 );
               })}
             </div>
-            <button
-              onClick={() => setStep(2)}
-              className="mt-8 w-full rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
-            >
+            <button onClick={() => setStep(2)} className="mt-8 w-full rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground">
               Continue
             </button>
           </>
@@ -98,12 +124,15 @@ function Onboarding() {
               })}
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 rounded-2xl border py-3.5 text-sm font-semibold">Back</button>
+              <button onClick={() => setStep(1)} className="flex-1 rounded-2xl border py-3.5 text-sm font-semibold">
+                Back
+              </button>
               <button
-                onClick={() => nav({ to: "/passport" })}
-                disabled={areas.length === 0}
-                className="flex-[2] rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+                onClick={handleComplete}
+                disabled={areas.length === 0 || createProfileMutation.isPending}
+                className="flex-[2] flex justify-center items-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
               >
+                {createProfileMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Enter AreaHustle
               </button>
             </div>

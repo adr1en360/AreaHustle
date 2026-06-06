@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
 import { naira } from "@/lib/format";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { Plus, CheckCircle, Clock, MapPin, Phone, Edit, X } from "lucide-react";
@@ -11,39 +13,109 @@ export const Route = createFileRoute("/customer-dashboard")({
 });
 
 function CustomerDashboard() {
-  const { isLoggedIn, userRole, walletBalance, jobs, updateJob, confirmJobDone } = useAuth();
+  const { isLoggedIn, isLoading: authLoading, userRole, user, updateDemoBalance, addDemoTransaction } = useAuth();
   const nav = useNavigate();
+  const queryClient = useQueryClient();
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("");
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
   const [editingJob, setEditingJob] = useState<any>(null);
 
-  useEffect(() => {
-    if (!isLoggedIn || userRole !== "customer") nav({ to: "/" });
-  }, [isLoggedIn, userRole, nav]);
+  const walletBalance = user?.wallet_balance || 0;
 
-  const myJobs = jobs || [];
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isLoggedIn || userRole !== "customer") nav({ to: "/" });
+  }, [isLoggedIn, userRole, authLoading, nav]);
+
+  const { data: myJobs = [], isLoading } = useQuery({
+    queryKey: ["customerJobs"],
+    queryFn: () => api.getMyTasks(),
+    enabled: isLoggedIn,
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: (id: string) => api.completeTask(id),
+    onSuccess: (data, variables) => {
+      toast.success("Payment released! Escrow funds transferred to Hustler.");
+
+      const job = myJobs.find((j: any) => (j.id || j._id) == variables);
+      if (job) {
+        const amount = Number(job.budget) || 0;
+        updateDemoBalance("customer", -amount);
+        updateDemoBalance("hustler", amount);
+        addDemoTransaction({
+          amount: amount,
+          desc: job.title || job.category || "Job completed",
+          location: job.location || job.neighbourhood || "Local",
+          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["customerJobs"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to confirm job.");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: string; payload: any }) => api.updateTask(data.id, data.payload),
+    onSuccess: () => {
+      toast.success("Job updated successfully.");
+      queryClient.invalidateQueries({ queryKey: ["customerJobs"] });
+      setEditingJob(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to update job. Check backend PUT route.");
+    },
+  });
 
   const handleTopUp = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseInt(topUpAmount);
     if (amt && amt > 0) {
+      updateDemoBalance("customer", amt);
       toast.success(`Successfully topped up ${naira(amt)}`);
       setTopUpOpen(false);
       setTopUpAmount("");
     }
   };
 
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseInt(withdrawAmount);
+    if (amt && amt > 0 && amt <= walletBalance) {
+      updateDemoBalance("customer", -amt);
+      toast.success(`Successfully withdrew ${naira(amt)} to bank.`);
+      setWithdrawOpen(false);
+      setWithdrawAmount("");
+    } else if (amt > walletBalance) {
+      toast.error("Insufficient balance.");
+    } else {
+      toast.error("Invalid amount.");
+    }
+  };
+
   const handleConfirm = (id: string) => {
-    confirmJobDone(id);
-    toast.success("Job confirmed! Escrow released to Hustler.");
+    confirmMutation.mutate(id);
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingJob && editingJob.editsRemaining > 0) {
-      updateJob(editingJob.id, { description: editingJob.description, budget: editingJob.budget, title: editingJob.title } as any);
-      setEditingJob(null);
-      toast.success(`Job updated. ${editingJob.editsRemaining - 1} edits remaining.`);
+      const currentEdits = parseInt(localStorage.getItem(`edit_count_${editingJob.id}`) || "0", 10);
+      localStorage.setItem(`edit_count_${editingJob.id}`, (currentEdits + 1).toString());
+
+      updateMutation.mutate({
+        id: editingJob.id,
+        payload: {
+          title: editingJob.title,
+          description: editingJob.description,
+          budget: editingJob.budget,
+        },
+      });
     }
   };
 
@@ -70,12 +142,20 @@ function CustomerDashboard() {
               ₦<AnimatedNumber value={walletBalance} />
             </div>
           </div>
-          <button
-            onClick={() => setTopUpOpen(true)}
-            className="mt-6 rounded-2xl bg-primary-foreground text-primary py-3 text-sm font-semibold hover:opacity-90 transition"
-          >
-            Top Up Balance
-          </button>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setTopUpOpen(true)}
+              className="flex-1 rounded-2xl bg-primary-foreground text-primary py-3 text-sm font-semibold hover:opacity-90 transition"
+            >
+              Top Up
+            </button>
+            <button
+              onClick={() => setWithdrawOpen(true)}
+              className="flex-1 rounded-2xl border border-primary-foreground/30 text-primary-foreground py-3 text-sm font-semibold hover:bg-primary-foreground/10 transition"
+            >
+              Withdraw
+            </button>
+          </div>
         </div>
 
         <div className="md:col-span-2 rounded-3xl bg-card border shadow-soft p-7 flex flex-col justify-center text-center items-center">
@@ -93,72 +173,93 @@ function CustomerDashboard() {
       <h2 className="font-display text-2xl font-bold mb-6">Active Jobs</h2>
       <div className="space-y-4">
         {myJobs.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground border border-dashed rounded-3xl">No active jobs found.</div>
+          <div className="text-center py-10 text-muted-foreground border border-dashed rounded-3xl">
+            {isLoading ? "Loading..." : "No active jobs found."}
+          </div>
         ) : (
-          myJobs.map((job) => (
-            <div
-              key={job.id}
-              className="rounded-3xl bg-card border shadow-soft p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full ${job.state === "pending" ? "bg-muted text-muted-foreground" : job.state === "accepted" ? "bg-primary/10 text-primary" : job.state === "awaiting_confirmation" ? "bg-orange-500/10 text-orange-600" : "bg-success/10 text-success"}`}
-                  >
-                    {job.state === "awaiting_confirmation" ? "completed" : job.state}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{job.category}</span>
-                </div>
-                <h3 className="font-display text-lg font-bold">{job.title}</h3>
-                {job.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{job.description}</p>}
-                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {job.location}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> {naira(job.budget)} in Escrow
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
-                {job.state === "pending" && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground italic">Waiting for Hustler...</span>
-                    <button
-                      onClick={() => setEditingJob(job)}
-                      disabled={job.editsRemaining <= 0}
-                      className="flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+          myJobs.map((job, index) => {
+            const jobId = job.id || job._id || index;
+            const status = job.status || job.state || "open";
+            const editsDone = parseInt(localStorage.getItem(`edit_count_${jobId}`) || "0", 10);
+            const editsRemaining = Math.max(0, 3 - editsDone);
+            return (
+              <div
+                key={jobId}
+                className="rounded-3xl bg-card border shadow-soft p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+              >
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={`text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full ${status === "open" || status === "pending" ? "bg-muted text-muted-foreground" : status === "matched" || status === "accepted" || status === "in_progress" || status === "active" ? "bg-primary/10 text-primary" : status === "awaiting_confirmation" ? "bg-orange-500/10 text-orange-600" : "bg-success/10 text-success"}`}
                     >
-                      <Edit className="h-3.5 w-3.5" /> Edit ({job.editsRemaining} left)
-                    </button>
+                      {status === "awaiting_confirmation"
+                        ? "marked as done"
+                        : status === "in_progress" || status === "active"
+                          ? "in progress"
+                          : status === "done" || status === "completed"
+                            ? "completed"
+                            : status}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{job.category}</span>
                   </div>
-                )}
-                {job.state === "accepted" && (
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm">
-                      Assigned: <span className="font-semibold">{job.assignedHustler || "A Hustler"}</span>
+                  <h3 className="font-display text-lg font-bold">{job.title}</h3>
+                  {job.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{job.description}</p>}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {job.location}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {naira(job.budget)} in Escrow
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
+                  {(status === "open" || status === "pending") && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-muted-foreground italic">Waiting for Hustler...</span>
+                      <button
+                        onClick={() => setEditingJob({ ...job, id: jobId, editsRemaining })}
+                        disabled={editsRemaining <= 0}
+                        className="flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Edit className="h-3.5 w-3.5" /> Edit ({editsRemaining} left)
+                      </button>
                     </div>
-                    <button className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
-                      <Phone className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-                {job.state === "awaiting_confirmation" && (
-                  <button
-                    onClick={() => handleConfirm(job.id)}
-                    className="w-full sm:w-auto justify-center rounded-full bg-[#183620] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-soft animate-pulse"
-                  >
-                    <CheckCircle className="h-4 w-4" /> Confirm & Release Escrow
-                  </button>
-                )}
-                {job.state === "done" && (
-                  <div className="text-sm text-success font-semibold sm:px-4 flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" /> Job Done
-                  </div>
-                )}
+                  )}
+                  {(status === "matched" || status === "accepted" || status === "in_progress" || status === "active") && (
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm">
+                        Assigned: <span className="font-semibold">{job.assignedHustler || "A Hustler"}</span>
+                        {(status === "in_progress" || status === "active") && (
+                          <span className="ml-1 text-primary text-[10px] font-bold uppercase tracking-widest">(Working)</span>
+                        )}
+                      </div>
+                      <button className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
+                        <Phone className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  {status === "awaiting_confirmation" && (
+                    <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
+                      <span className="text-xs text-orange-600 font-semibold italic px-1">Hustler marked as done. Please review.</span>
+                      <button
+                        onClick={() => handleConfirm(job.id || job._id)}
+                        disabled={confirmMutation.isPending}
+                        className="w-full sm:w-auto justify-center rounded-full bg-[#183620] text-white px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition flex items-center gap-2 shadow-soft animate-pulse"
+                      >
+                        <CheckCircle className="h-4 w-4" /> Release Payment
+                      </button>
+                    </div>
+                  )}
+                  {(status === "done" || status === "completed") && (
+                    <div className="text-sm text-success font-semibold sm:px-4 flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" /> Job Done
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -185,6 +286,38 @@ function CustomerDashboard() {
                   className="flex-1 rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
                 >
                   Paystack Pay
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {withdrawOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-fade-up">
+          <div className="relative w-full max-w-sm rounded-3xl bg-card border shadow-elevated p-8">
+            <h2 className="font-display text-xl font-bold mb-2">Withdraw Funds</h2>
+            <p className="text-xs text-muted-foreground mb-4">Available balance: {naira(walletBalance)}</p>
+            <form onSubmit={handleWithdraw}>
+              <input
+                type="number"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="Amount (e.g. 5000)"
+                max={walletBalance}
+                className="w-full rounded-2xl border bg-muted/30 px-4 py-3 text-lg font-semibold mb-4 outline-none focus:border-primary"
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setWithdrawOpen(false)} className="flex-1 rounded-full border py-3 text-sm font-semibold">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!withdrawAmount}
+                  className="flex-1 rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  Withdraw
                 </button>
               </div>
             </form>
@@ -230,8 +363,12 @@ function CustomerDashboard() {
                   className="mt-1 w-full rounded-xl border bg-muted/30 px-4 py-3 text-sm outline-none focus:border-primary"
                 />
               </div>
-              <button type="submit" className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold text-primary-foreground mt-2">
-                Save Changes
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold text-primary-foreground mt-2 disabled:opacity-50"
+              >
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
               </button>
             </form>
           </div>
