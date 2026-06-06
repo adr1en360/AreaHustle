@@ -20,6 +20,10 @@ function Jobs() {
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [showPhoneModal, setShowPhoneModal] = useState<string | null>(null);
+  
+  const [negotiatingJob, setNegotiatingJob] = useState<string | null>(null);
+  const [offerAmount, setOfferAmount] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
@@ -47,6 +51,18 @@ function Jobs() {
       setTab("my-gigs");
     },
   });
+
+  const handleOffer = (e: React.FormEvent, jobId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const amt = parseInt(offerAmount);
+    if (amt > 0) {
+      localStorage.setItem(`mock_offer_${jobId}`, JSON.stringify({ amount: amt, hustlerName: user?.name || "A Hustler" }));
+      toast.success(`Offer of ${naira(amt)} sent to customer!`);
+      setNegotiatingJob(null);
+      setOfferAmount("");
+    }
+  };
 
   const activateMutation = useMutation({
     mutationFn: (id: string) => api.activateTask(id),
@@ -159,7 +175,10 @@ function Jobs() {
                 {loadingMarket ? "Loading open gigs..." : "No available jobs match your search."}
               </div>
             )}
-            {filteredMarket.map((j, i) => (
+            {filteredMarket.map((j, i) => {
+              const mockBudgetStr = localStorage.getItem(`mock_budget_${j.id || j._id}`);
+              const displayBudget = mockBudgetStr ? parseInt(mockBudgetStr) : j.budget;
+              return (
               <article
                 key={j.id || j._id || i}
                 className="rounded-3xl bg-card border shadow-soft hover:shadow-elevated transition p-6 flex flex-col animate-fade-up relative overflow-hidden"
@@ -177,28 +196,58 @@ function Jobs() {
                 <div className="mt-auto flex flex-wrap gap-3 items-center justify-between">
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Payout</div>
-                    <div className="font-display text-2xl font-bold">{naira(j.budget)}</div>
+                    <div className="font-display text-2xl font-bold">{naira(displayBudget)}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedJob(j);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-semibold hover:bg-muted transition"
-                    >
-                      View Details
-                    </button>
-                    <button
-                      onClick={(e) => handleAccept(e, j.id || j._id)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 transition"
-                    >
-                      <Lock className="h-3.5 w-3.5" /> Accept
-                    </button>
+                    {negotiatingJob === (j.id || j._id) ? (
+                      <form onSubmit={(e) => handleOffer(e, j.id || j._id)} className="flex items-center gap-1">
+                        <input 
+                          type="number" 
+                          autoFocus 
+                          required 
+                          placeholder="₦" 
+                          value={offerAmount} 
+                          onChange={e => setOfferAmount(e.target.value)} 
+                          onClick={e => e.stopPropagation()}
+                          className="w-20 rounded-full border px-3 py-2 text-xs" 
+                        />
+                        <button type="submit" className="rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Send</button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setNegotiatingJob(null); }} className="rounded-full border px-3 py-2 text-xs font-semibold text-muted-foreground">Cancel</button>
+                      </form>
+                    ) : (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedJob(j);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold hover:bg-muted transition"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNegotiatingJob(j.id || j._id);
+                            setOfferAmount(j.budget?.toString() || "");
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 transition"
+                        >
+                          Propose Price
+                        </button>
+                        <button
+                          onClick={(e) => handleAccept(e, j.id || j._id)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95 transition"
+                        >
+                          <Lock className="h-3.5 w-3.5" /> Accept
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
@@ -212,6 +261,8 @@ function Jobs() {
           )}
           {myGigs.map((j, i) => {
             const status = j.status || j.state;
+            const mockBudgetStr = localStorage.getItem(`mock_budget_${j.id || j._id}`);
+            const displayBudget = mockBudgetStr ? parseInt(mockBudgetStr) : j.budget;
             return (
               <div
                 key={j.id || j._id || i}
@@ -234,13 +285,16 @@ function Jobs() {
                     <span className="flex items-center gap-1 text-foreground">
                       <MapPin className="h-4 w-4 text-primary" /> Exact Location Revealed
                     </span>
-                    <span className="flex items-center gap-1 font-semibold text-success">{naira(j.budget)} Locked</span>
+                    <span className="flex items-center gap-1 font-semibold text-success">{naira(displayBudget)} Locked</span>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
                   {status === "accepted" || status === "matched" ? (
                     <>
-                      <button className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition">
+                      <button 
+                        onClick={() => setShowPhoneModal((j as any).customerPhone || "+234 812 345 6789")}
+                        className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition"
+                      >
                         <Phone className="h-4 w-4" /> Call Customer
                       </button>
                       <button
@@ -253,7 +307,10 @@ function Jobs() {
                     </>
                   ) : status === "in_progress" || status === "active" ? (
                     <>
-                      <button className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition">
+                      <button 
+                        onClick={() => setShowPhoneModal((j as any).customerPhone || "+234 812 345 6789")}
+                        className="flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold hover:bg-muted transition"
+                      >
                         <Phone className="h-4 w-4" /> Call Customer
                       </button>
                       <button

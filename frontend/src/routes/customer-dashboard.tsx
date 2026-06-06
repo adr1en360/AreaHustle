@@ -21,6 +21,7 @@ function CustomerDashboard() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [editingJob, setEditingJob] = useState<any>(null);
+  const [showPhoneModal, setShowPhoneModal] = useState<string | null>(null);
 
   const walletBalance = user?.wallet_balance || 0;
 
@@ -177,11 +178,20 @@ function CustomerDashboard() {
             {isLoading ? "Loading..." : "No active jobs found."}
           </div>
         ) : (
-          myJobs.map((job, index) => {
+          myJobs.map((job: any, index: number) => {
             const jobId = job.id || job._id || index;
             const status = job.status || job.state || "open";
             const editsDone = parseInt(localStorage.getItem(`edit_count_${jobId}`) || "0", 10);
             const editsRemaining = Math.max(0, 3 - editsDone);
+            let mockOffer = null;
+            try {
+              const str = localStorage.getItem(`mock_offer_${jobId}`);
+              if (str) mockOffer = JSON.parse(str);
+            } catch (e) {}
+
+            const mockBudgetStr = localStorage.getItem(`mock_budget_${jobId}`);
+            const displayBudget = mockBudgetStr ? parseInt(mockBudgetStr) : job.budget;
+
             return (
               <div
                 key={jobId}
@@ -209,14 +219,34 @@ function CustomerDashboard() {
                       <MapPin className="h-3 w-3" /> {job.location}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> {naira(job.budget)} in Escrow
+                      <Clock className="h-3 w-3" /> {naira(displayBudget)} in Escrow
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 w-full sm:w-auto">
                   {(status === "open" || status === "pending") && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-muted-foreground italic">Waiting for Hustler...</span>
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                      {mockOffer ? (
+                        <div className="flex flex-col items-end gap-2 bg-muted/30 p-3 rounded-2xl border border-primary/20 animate-fade-up">
+                           <span className="text-xs font-semibold text-primary">{mockOffer.hustlerName} offered <span className="font-display font-bold text-lg">{naira(mockOffer.amount)}</span></span>
+                           <div className="flex gap-2">
+                             <button onClick={() => {
+                               // Use mock budget update instead of calling backend since there's no PUT route
+                               localStorage.setItem(`mock_budget_${jobId}`, mockOffer.amount.toString());
+                               localStorage.removeItem(`mock_offer_${jobId}`);
+                               toast.success("Offer accepted! Budget updated.");
+                               // Force re-render
+                               queryClient.invalidateQueries({ queryKey: ["customerJobs"] });
+                             }} className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-soft hover:opacity-90 transition">Accept</button>
+                             <button onClick={() => {
+                               localStorage.removeItem(`mock_offer_${jobId}`);
+                               queryClient.invalidateQueries({ queryKey: ["customerJobs"] });
+                             }} className="rounded-full border bg-white px-4 py-1.5 text-xs font-semibold hover:bg-muted transition">Decline</button>
+                           </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">Waiting for Hustler...</span>
+                      )}
                       <button
                         onClick={() => setEditingJob({ ...job, id: jobId, editsRemaining })}
                         disabled={editsRemaining <= 0}
@@ -234,7 +264,10 @@ function CustomerDashboard() {
                           <span className="ml-1 text-primary text-[10px] font-bold uppercase tracking-widest">(Working)</span>
                         )}
                       </div>
-                      <button className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition">
+                      <button 
+                        onClick={() => setShowPhoneModal((job as any).hustlerPhone || "+234 809 876 5432")}
+                        className="h-10 w-10 shrink-0 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition"
+                      >
                         <Phone className="h-4 w-4" />
                       </button>
                     </div>
@@ -321,6 +354,27 @@ function CustomerDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showPhoneModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-fade-up">
+          <div className="relative w-full max-w-sm rounded-3xl bg-card border shadow-elevated p-8 text-center">
+            <button onClick={() => setShowPhoneModal(null)} className="absolute right-5 top-5 text-muted-foreground hover:text-foreground">
+              <X className="h-5 w-5" />
+            </button>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success mb-4">
+              <Phone className="h-8 w-8" />
+            </div>
+            <h2 className="font-display text-2xl font-bold mb-2">Contact Hustler</h2>
+            <p className="text-muted-foreground text-sm mb-6">Reach out directly via call or WhatsApp.</p>
+            <div className="rounded-2xl bg-muted/30 border py-5 mb-6">
+              <div className="font-display text-3xl font-bold tracking-tight text-foreground">{showPhoneModal}</div>
+            </div>
+            <a href={`tel:${showPhoneModal}`} className="flex w-full items-center justify-center gap-2 rounded-full bg-success py-3.5 text-sm font-bold text-white shadow-soft hover:opacity-90 transition">
+              <Phone className="h-4 w-4" /> Call Now
+            </a>
           </div>
         </div>
       )}
