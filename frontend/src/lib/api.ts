@@ -234,12 +234,56 @@ export const apiCreateLoan = (principal: number, sweepPercentage: number) => {
 };
 export const apiGetActiveLoan = () => fetchApi("/loans/active");
 
-// Users / Hustlers
-export const apiCreateHustlerProfile = (data: { service_areas: string[]; categories: string[] }) => {
-  return fetchApi("/users/hustler-profile", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+
+// this is the USERS API
+
+
+export async function apiGetHustlerProfile() {
+  console.log("[apiGetHustlerProfile] Requesting hustler profile");
+  const response = await fetchApi("/users/hustler-profile", { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to fetch hustler profile");
+  }
+  return responseData;
+}
+
+export async function apiUpdateHustlerProfile(data: { service_areas: string[]; categories: string[] }) {
+  console.log("[apiUpdateHustlerProfile] Updating hustler profile:", data);
+  const response = await fetchApi("/users/hustler-profile", {
+    method: "PUT",
     body: JSON.stringify(data),
   });
-};
-export const apiGetNearbyHustlers = (neighbourhood: string) => fetchApi(`/users/nearby-hustlers?neighbourhood=${neighbourhood}`);
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to update hustler profile");
+  }
+  return responseData;
+}
+
+export async function apiCreateHustlerProfile(data: { service_areas: string[]; categories: string[] }) {
+  console.log("[apiCreateHustlerProfile] Creating hustler profile:", data);
+  const response = await fetchApi("/users/hustler-profile", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to create hustler profile");
+  }
+  return responseData;
+}
+
+export async function apiListNearbyHustlers(neighbourhood: string) {
+  console.log("[apiListNearbyHustlers] Requesting nearby hustlers for:", neighbourhood);
+  const response = await fetchApi(`/users/nearby-hustlers?neighbourhood=${encodeURIComponent(neighbourhood)}`, { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to list nearby hustlers");
+  }
+  return responseData;
+}
