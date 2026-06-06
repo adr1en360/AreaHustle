@@ -106,34 +106,31 @@ async def test_hustler_profile():
         print(f"  Trust score: {data.get('trust_score')}")
 
 
-async def test_loan_and_sweep():
-    print("\n--- Test: Loan & Sweep ---")
+async def test_escrow_and_payout():
+    print("\n--- Test: Escrow & Payout ---")
     async with httpx.AsyncClient() as client:
         h = {"Authorization": f"Bearer {tokens['hustler']}"}
-        # Create loan
-        r = await client.post(f"{BASE}/api/v1/loans/", json={
-            "principal": 50000,
-            "sweep_percentage": 0.20,
-        }, headers=h)
-        if r.status_code == 201:
-            print(f"  Created loan")
-        else:
-            print(f"  Loan may already exist ({r.status_code})")
 
-        # Demo sweep
+        # Demo sweep (mock escrow release)
         r = await client.post(f"{BASE}/api/v1/passport/demo/complete-job-sweep", json={
             "job_amount": 5000,
         }, headers=h)
-        assert r.status_code == 200, f"Sweep failed: {r.text}"
+        assert r.status_code == 200, f"Payout failed: {r.text}"
         data = r.json()
         print(f"  Gross: {data['breakdown']['gross_received']}")
         print(f"  Net:   {data['breakdown']['net_credited_to_wallet']}")
-        print(f"  New loan balance: {data['new_loan_balance']}")
 
         # Transactions
         r = await client.get(f"{BASE}/api/v1/passport/transactions", headers=h)
         assert r.status_code == 200
         print(f"  Transactions: {len(r.json())}")
+
+        # Proof Card
+        r = await client.get(f"{BASE}/api/v1/passport/proof-card", headers=h)
+        assert r.status_code == 200
+        data = r.json()
+        print(f"  Proof Card Verification Hash: {data['verification_hash']}")
+        print(f"  Proof Card 90d verified income: {data['verified_income_90d']}")
 
 
 async def run_all():
@@ -148,7 +145,7 @@ async def run_all():
     # Core flows
     await test_task_lifecycle()
     await test_hustler_profile()
-    await test_loan_and_sweep()
+    await test_escrow_and_payout()
 
     # AI stack (if keys present)
     if os.getenv("AETHEX_API_KEY") and os.getenv("AETHEX_PASSPORT_AGENT_ID"):

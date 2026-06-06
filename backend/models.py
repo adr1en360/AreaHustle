@@ -43,7 +43,6 @@ class HustlerProfile(BaseModel):
     dispute_rate: float = 0.0
     service_areas: List[str] = []
     categories: List[str] = []
-    active_loan_id: Optional[str] = None
 
 class HustlerProfileCreate(BaseModel):
     service_areas: List[str] = []
@@ -68,32 +67,16 @@ class TaskCreate(BaseModel):
     budget: float
     neighbourhood: str
 
-class Loan(BaseModel):
-    id: Optional[str] = Field(None, alias="_id")
-    hustler_id: str
-    mfb_partner_id: str = "mock_mfb_partner"
-    principal: float
-    outstanding_balance: float
-    sweep_percentage: float = 0.20  # 20% by default
-    status: str = "active"  # active, settled, defaulted
-    issued_at: datetime = Field(default_factory=datetime.utcnow)
-
-class LoanCreate(BaseModel):
-    principal: float
-    sweep_percentage: float = 0.20
-
 class Transaction(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     user_id: str
     task_id: Optional[str] = None
-    loan_id: Optional[str] = None
-    type: str  # escrow_hold, payout, loan_sweep, topup, withdrawal
+    type: str  # escrow_hold, payout, topup, withdrawal
     amount: float
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class TransactionCreate(BaseModel):
     user_id: str
     task_id: Optional[str] = None
-    loan_id: Optional[str] = None
     type: str
     amount: float

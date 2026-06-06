@@ -88,63 +88,28 @@ async def demo_complete_job_sweep(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    SPECIAL DEMO ENDPOINT: Simulates the Phase 3 'Wow Moment'.
-    Now persists the loan sweep and transaction to the database.
+    SPECIAL DEMO ENDPOINT: Simulates the completion of a job.
+    Releases escrow and records the transaction to the database (without loan sweep).
     """
     user_id = str(current_user.get("_id"))
-    sweep_percentage = 0.20
-    sweep_amount = job_amount * sweep_percentage
-    final_payout = job_amount - sweep_amount
+    final_payout = job_amount
 
-    # 1. Update or create a mock loan for the hustler
-    loan = await db.loans.find_one({"hustler_id": user_id, "status": "active"})
-    if loan:
-        new_balance = max(0.0, loan["outstanding_balance"] - sweep_amount)
-        await db.loans.update_one(
-            {"_id": loan["_id"]},
-            {"$set": {"outstanding_balance": new_balance}},
-        )
-        loan_id = str(loan["_id"])
-    else:
-        # Seed a loan if none exists so the demo works end-to-end
-        loan_doc = {
-            "hustler_id": user_id,
-            "mfb_partner_id": "mock_mfb_partner",
-            "principal": 50000.0,
-            "outstanding_balance": 39000.0,
-            "sweep_percentage": sweep_percentage,
-            "status": "active",
-            "issued_at": datetime.utcnow(),
-        }
-        result = await db.loans.insert_one(loan_doc)
-        loan_id = str(result.inserted_id)
-        new_balance = 39000.0
+    # 1. Record transaction
+    transaction = {
+        "user_id": user_id,
+        "type": "payout",
+        "amount": final_payout,
+        "timestamp": datetime.utcnow(),
+    }
+    await db.transactions.insert_one(transaction)
 
-    # 2. Record transactions
-    transactions = [
-        {
-            "user_id": user_id,
-            "type": "payout",
-            "amount": final_payout,
-            "timestamp": datetime.utcnow(),
-        },
-        {
-            "user_id": user_id,
-            "loan_id": loan_id,
-            "type": "loan_sweep",
-            "amount": -sweep_amount,
-            "timestamp": datetime.utcnow(),
-        },
-    ]
-    await db.transactions.insert_many(transactions)
-
-    # 3. Update user wallet
+    # 2. Update user wallet
     await db.users.update_one(
         {"_id": ObjectId(user_id)},
         {"$inc": {"wallet_balance": final_payout}},
     )
 
-    # 4. Update hustler stats
+    # 3. Update hustler stats
     await db.hustler_profiles.update_one(
         {"user_id": user_id},
         {
@@ -159,15 +124,77 @@ async def demo_complete_job_sweep(
         "event": "JOB_COMPLETED_ESCROW_RELEASED",
         "breakdown": {
             "gross_received": job_amount,
-            "loan_sweep_deduction": sweep_amount,
             "net_credited_to_wallet": final_payout,
         },
         "animation_sequence": [
             {"label": "Escrow Released", "value": job_amount, "color": "green"},
-            {"label": "Loan Sweep (20%)", "value": -sweep_amount, "color": "red"},
             {"label": "Final Wallet Credit", "value": final_payout, "color": "blue"},
         ],
-        "new_loan_balance": new_balance,
+    }
+
+
+@router.get("/proof-card")
+async def get_proof_card(
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    user_id = str(current_user.get("_id"))
+    profile = await db.hustler_profiles.find_one({"user_id": user_id})
+    if not profile:
+        profile = {
+            "trust_score": 820,
+            "completed_jobs": 47,
+            "completion_rate": 0.94,
+            "repeat_hire_ratio": 0.66,
+            "dispute_rate": 0.02,
+            "categories": ["Generator Service", "Car Wash"],
+            "service_areas": ["Lekki Phase 1", "Ajah"]
+        }
+
+    is_demo_emeka = current_user.get("email") == "hustler@areahustle.com" or profile.get("trust_score", 0) >= 800
+
+    if is_demo_emeka:
+        verified_income_30d = 45000.0
+        verified_income_60d = 82000.0
+        verified_income_90d = 135000.0
+        consistency_index = 0.72
+        tenure = 8
+        avg_response = 4.2
+        completed_jobs = profile.get("completed_jobs", 47)
+        if completed_jobs < 47:
+            completed_jobs = 47
+    else:
+        completed_jobs = profile.get("completed_jobs", 0)
+        tenure = 1
+        avg_response = 10.0
+        cursor = db.transactions.find({"user_id": user_id, "type": "payout"})
+        total_payout = 0.0
+        async for tx in cursor:
+            total_payout += tx.get("amount", 0.0)
+            
+        verified_income_30d = total_payout
+        verified_income_60d = total_payout
+        verified_income_90d = total_payout
+        consistency_index = 0.50 if total_payout > 0 else 0.0
+
+    return {
+        "hustler_id": f"ah_v2_{user_id[:12]}",
+        "hustler_name": current_user.get("name", "Hustler"),
+        "kyc_tier": current_user.get("kyc_tier", 2),
+        "platform_tenure_months": tenure,
+        "verified_income_30d": verified_income_30d,
+        "verified_income_60d": verified_income_60d,
+        "verified_income_90d": verified_income_90d,
+        "income_consistency_index": consistency_index,
+        "total_jobs_completed": completed_jobs,
+        "completion_rate": profile.get("completion_rate", 0.94),
+        "repeat_hire_ratio": profile.get("repeat_hire_ratio", 0.66),
+        "dispute_rate": profile.get("dispute_rate", 0.02),
+        "avg_response_time_minutes": avg_response,
+        "categories": profile.get("categories", ["Generator Service", "Car Wash"]),
+        "service_areas": profile.get("service_areas", ["Lekki Phase 1", "Ajah"]),
+        "generated_at": datetime.utcnow().isoformat(),
+        "verification_hash": f"ah_v2_{user_id[:8]}hash"
     }
 
 
