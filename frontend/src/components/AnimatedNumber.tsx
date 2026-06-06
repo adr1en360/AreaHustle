@@ -3,18 +3,18 @@ import { useEffect, useState } from "react";
 export function AnimatedNumber({
   value,
   duration = 1200,
-  format = (n: number) => n.toLocaleString("en-NG"),
+  format = (n?: number) => (n || 0).toLocaleString("en-NG"),
   className,
 }: {
-  value: number;
+  value?: number;
   duration?: number;
-  format?: (n: number) => string;
+  format?: (n?: number) => string;
   className?: string;
 }) {
-  const [display, setDisplay] = useState(value);
+  const [display, setDisplay] = useState(value || 0);
   useEffect(() => {
     const from = display;
-    const to = value;
+    const to = value || 0;
     if (from === to) return;
     const start = performance.now();
     let raf = 0;

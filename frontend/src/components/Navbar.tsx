@@ -2,23 +2,27 @@ import React, { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { naira } from "@/lib/format";
-import { Wallet, LogOut, Shield, LayoutDashboard, Briefcase, CreditCard, PlusCircle } from "lucide-react";
+import { Wallet, LogOut, Shield, LayoutDashboard, Briefcase, CreditCard, PlusCircle, User as UserIcon } from "lucide-react";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { AuthModal } from "./AuthModal";
 import logo from "@/assets/logo.png"; // Change to .png or
 import { toast } from "sonner";
 
 export function Navbar() {
-  const { isLoggedIn, userRole, walletBalance, trustScore, logout } = useAuth();
+  const { isLoggedIn, userRole, user, logout, updateDemoBalance } = useAuth();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
+  const walletBalance = user?.wallet_balance || 0;
+  const trustScore = user?.trust_score || 0;
+
   const handleWithdraw = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseInt(withdrawAmount);
     if (amt && amt <= walletBalance) {
+      updateDemoBalance(userRole as string, -amt);
       toast.success(`Successfully withdrew ${naira(amt)} to bank.`);
       setWithdrawOpen(false);
       setWithdrawAmount("");
@@ -67,6 +71,10 @@ export function Navbar() {
                   <Link to="/jobs" title="Job Market" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
                     <Briefcase className="h-5 w-5 sm:hidden" />
                     <span className="hidden sm:inline">Job Market</span>
+                  </Link>
+                  <Link to="/profile" title="Profile" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
+                    <UserIcon className="h-5 w-5 sm:hidden" />
+                    <span className="hidden sm:inline">Profile</span>
                   </Link>
                   <Link to="/passport" title="Passport" className="flex items-center gap-2 text-sm font-medium hover:text-primary transition">
                     <CreditCard className="h-5 w-5 sm:hidden" />

@@ -1,2 +1,1 @@
-export const naira = (n: number) =>
-  `₦${n.toLocaleString("en-NG")}`;
+export const naira = (n?: number) => `₦${(n || 0).toLocaleString("en-NG")}`;

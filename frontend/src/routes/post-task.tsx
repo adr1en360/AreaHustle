@@ -1,8 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
 import { naira } from "@/lib/format";
 import { Mic, Lock, MapPin, Tag, Wallet, Sparkles, Check, Keyboard } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/post-task")({
   head: () => ({ meta: [{ title: "Post a Task · AreaHustle" }] }),
@@ -12,10 +15,12 @@ export const Route = createFileRoute("/post-task")({
 type Phase = "idle" | "recording" | "processing" | "result" | "locked";
 
 function PostTask() {
-  const { isLoggedIn, postJob } = useAuth();
+  const { isLoggedIn } = useAuth();
   const nav = useNavigate();
+  const queryClient = useQueryClient();
   const [phase, setPhase] = useState<Phase>("idle");
   const [manualMode, setManualMode] = useState(false);
+  const [voiceResult, setVoiceResult] = useState<any>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -26,16 +31,37 @@ function PostTask() {
     if (!isLoggedIn) nav({ to: "/" });
   }, [isLoggedIn, nav]);
 
+  const createMutation = useMutation({
+    mutationFn: (data: any) => api.createTask(data),
+    onSuccess: () => {
+      toast.success("Job Posted!");
+      queryClient.invalidateQueries({ queryKey: ["customerJobs"] });
+      nav({ to: "/customer-dashboard" });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to post task");
+      setPhase("result");
+    },
+  });
+
   const start = () => {
     setPhase("recording");
-    setTimeout(() => setPhase("processing"), 2200);
-    setTimeout(() => setPhase("result"), 3300);
+    setTimeout(async () => {
+      setPhase("processing");
+      try {
+        const result = await api.voiceToIntent("demo");
+        setVoiceResult(result);
+        setPhase("result");
+      } catch (err) {
+        toast.error("Failed to parse intent. Please try typing manually.");
+        setPhase("idle");
+      }
+    }, 2200);
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    postJob({ title, description, budget: Number(budget), location: area, category: "General" } as any);
-    nav({ to: "/customer-dashboard" });
+    createMutation.mutate({ title, description, budget: Number(budget), neighbourhood: area, category: "General" });
   };
 
   return (
@@ -175,27 +201,31 @@ function PostTask() {
                     <Sparkles className="h-3.5 w-3.5 text-voice" /> Structured by Gemini
                   </div>
                   <div className="grid sm:grid-cols-3 gap-4">
-                    <Field icon={Tag} label="Category" value="Generator Servicing" />
-                    <Field icon={Wallet} label="Budget" value={naira(8000)} />
-                    <Field icon={MapPin} label="Location" value="Lekki Phase 1" />
+                    <Field icon={Tag} label="Category" value={voiceResult?.category || "Repairs"} />
+                    <Field icon={Wallet} label="Budget" value={naira(voiceResult?.budget || 8000)} />
+                    <Field icon={MapPin} label="Location" value={voiceResult?.neighbourhood || "Lekki Phase 1"} />
                   </div>
                   <div className="mt-5 rounded-xl bg-card border p-4 text-sm text-muted-foreground italic">
-                    "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira."
+                    "
+                    {voiceResult?.description ||
+                      "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira."}
+                    "
                   </div>
                 </div>
                 <button
                   onClick={() => {
                     setPhase("locked");
-                    postJob({
-                      title: "Generator Servicing",
-                      description: "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira.",
-                      budget: 8000,
-                      location: "Lekki Phase 1",
-                      category: "Repairs",
-                    } as any);
-                    setTimeout(() => nav({ to: "/customer-dashboard" }), 1400);
+                    createMutation.mutate({
+                      title: voiceResult?.category || "Generator Servicing",
+                      description:
+                        voiceResult?.description ||
+                        "I need someone to come service my Tiger generator today in Lekki Phase 1, budget around eight thousand naira.",
+                      budget: voiceResult?.budget || 8000,
+                      neighbourhood: voiceResult?.neighbourhood || "Lekki Phase 1",
+                      category: voiceResult?.category || "Repairs",
+                    });
                   }}
-                  disabled={phase === "locked"}
+                  disabled={phase === "locked" || createMutation.isPending}
                   className="mt-6 w-full rounded-2xl bg-primary py-4 text-sm font-semibold text-primary-foreground hover:opacity-95 transition flex items-center justify-center gap-2 disabled:opacity-90"
                 >
                   {phase === "locked" ? (

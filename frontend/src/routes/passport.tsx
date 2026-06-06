@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { apiGetPassport, apiGetTransactions } from "@/lib/api";
+import { api } from "@/lib/api";
 import { naira } from "@/lib/format";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import {
@@ -74,26 +75,29 @@ function PassportTrustDial({ value }: { value: number }) {
 function PassportPage() {
   const { isLoggedIn, userRole, user } = useAuth();
   const nav = useNavigate();
-  const [txns, setTxns] = useState<any[]>([]);
   const [voiceExpanded, setVoiceExpanded] = useState(false);
+
+  const { data: passport } = useQuery({
+    queryKey: ["passport"],
+    queryFn: () => api.getPassport(),
+    enabled: isLoggedIn,
+  });
+
+  const { data: apiTxns = [] } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: () => api.getTransactions(),
+    enabled: isLoggedIn,
+  });
+
+  const [demoTxns, setDemoTxns] = useState<any[]>([]);
+  useEffect(() => {
+    setDemoTxns(JSON.parse(localStorage.getItem("demo_transactions") || "[]"));
+  }, []);
+
+  const txns = [...demoTxns, ...apiTxns];
 
   useEffect(() => {
     if (!isLoggedIn || userRole !== "hustler") nav({ to: "/" });
-
-    // Hardcoded to exact PRD specs for the high-fidelity showcase
-    setTxns([
-      {
-        id: 1,
-        type: "standard",
-        amount: 5000,
-        desc: "Generator Service",
-        location: "Lekki Phase 1",
-        date: "Today, 2:30 PM",
-      },
-      { id: 2, type: "standard", amount: 3000, desc: "Car Wash", location: "Ikoyi", date: "Yesterday" },
-      { id: 3, type: "standard", amount: 12000, desc: "Plumbing Repair", location: "Yaba", date: "3 days ago" },
-      { id: 4, type: "withdrawal", amount: -15000, desc: "Withdrawal to GTBank", location: "", date: "Last week" },
-    ]);
   }, [isLoggedIn, userRole, nav]);
 
   const handleCopyLink = () => {
@@ -110,7 +114,7 @@ function PassportPage() {
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="text-right">
               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Total Wallet Balance</div>
-              <div className="font-display font-bold text-base sm:text-lg text-[#0D3B2E]">₦42,000</div>
+              <div className="font-display font-bold text-base sm:text-lg text-[#0D3B2E]">{naira(user?.wallet_balance || 0)}</div>
             </div>
             <div className="h-10 w-10 rounded-full bg-[#0D3B2E] text-white flex items-center justify-center font-bold shadow-soft">EA</div>
           </div>
@@ -124,7 +128,7 @@ function PassportPage() {
             {/* Left: Dial & Copy Link */}
             <div className="flex flex-col items-center text-center">
               <div className="text-xs uppercase tracking-widest text-[#0D3B2E] font-semibold mb-2">Verified Trust Score</div>
-              <PassportTrustDial value={820} />
+              <PassportTrustDial value={user?.trust_score || passport?.trust_score || 0} />
               <button
                 onClick={handleCopyLink}
                 className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[#0D3B2E] text-white px-6 py-3 text-sm font-semibold hover:bg-[#0D3B2E]/90 transition shadow-soft w-full"
@@ -140,7 +144,7 @@ function PassportPage() {
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Job Completion Rate</div>
                   <div className="font-display text-2xl font-bold text-[#10B981]">
-                    94%{" "}
+                    {passport?.job_completion_rate || 0}%{" "}
                     <span className="text-[10px] bg-[#10B981]/10 text-[#10B981] px-2 py-0.5 rounded-full ml-1 align-middle uppercase">
                       High Weight
                     </span>
@@ -148,15 +152,15 @@ function PassportPage() {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">On-Time Arrival</div>
-                  <div className="font-display text-xl font-bold text-[#0D3B2E]">88%</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">{passport?.on_time_arrival || 0}%</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Repeat Hire Ratio</div>
-                  <div className="font-display text-xl font-bold text-[#0D3B2E]">12%</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">{passport?.repeat_hire_ratio || 0}%</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Dispute Rate</div>
-                  <div className="font-display text-xl font-bold text-[#0D3B2E]">0%</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">{passport?.dispute_rate || 0}%</div>
                 </div>
                 <div className="sm:col-span-2 pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
