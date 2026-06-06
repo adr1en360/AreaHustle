@@ -129,7 +129,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <Footer />
-        <VoiceTerminal />
+        {/* <VoiceTerminal /> */}
         <Toaster position="top-right" richColors />
       </AuthProvider>
     </QueryClientProvider>

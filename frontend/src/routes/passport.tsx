@@ -1,137 +1,260 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { apiGetPassport, apiGetActiveLoan, apiGetTransactions } from "@/lib/api";
+import { apiGetPassport, apiGetTransactions } from "@/lib/api";
 import { naira } from "@/lib/format";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
-import { ShieldCheck, Wallet, ArrowUpRight, ArrowDownRight, History, CreditCard } from "lucide-react";
+import {
+  ShieldCheck,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight,
+  History,
+  CreditCard,
+  Mic,
+  Share2,
+  CheckCircle,
+  Clock,
+  MapPin,
+  X,
+  TrendingUp,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/passport")({
   component: PassportPage,
 });
 
+function PassportTrustDial({ value }: { value: number }) {
+  const max = 1000;
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setShown(value), 300);
+    return () => clearTimeout(t);
+  }, [value]);
+  const pct = shown / max;
+  const r = 50;
+  const c = 2 * Math.PI * r;
+  const off = c * (1 - pct * 0.75); // 270 degree circle
+  return (
+    <div className="relative flex items-center justify-center h-36 w-36 sm:h-40 sm:w-40 shrink-0">
+      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-[135deg]">
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="#E5E7EB"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * 0.25}
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="#0D3B2E"
+          className="transition-all duration-[1500ms] ease-out"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={off}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="font-display text-3xl sm:text-4xl font-bold tabular-nums text-[#0D3B2E]">{shown}</div>
+        <div className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-widest">/ 1000</div>
+      </div>
+    </div>
+  );
+}
+
 function PassportPage() {
   const { isLoggedIn, userRole, user } = useAuth();
   const nav = useNavigate();
-  const [loan, setLoan] = useState<any>(null);
   const [txns, setTxns] = useState<any[]>([]);
+  const [voiceExpanded, setVoiceExpanded] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn || userRole !== "hustler") nav({ to: "/" });
 
-    // Attempt to load live data, fallback to mock state visually
-    apiGetActiveLoan()
-      .then(setLoan)
-      .catch(() => {
-        setLoan({ principal: 25000, remaining_balance: 12000, sweep_percentage: 0.2 });
-      });
-
-    apiGetTransactions()
-      .then(setTxns)
-      .catch(() => {
-        setTxns([
-          { id: 1, type: "job_payout", amount: 8000, desc: "Generator Servicing", date: "Just now" },
-          { id: 2, type: "loan_sweep", amount: -1600, desc: "20% Auto-sweep for Loan", date: "Just now" },
-          { id: 3, type: "withdrawal", amount: -5000, desc: "Withdrawal to Bank", date: "2 days ago" },
-        ]);
-      });
+    // Hardcoded to exact PRD specs for the high-fidelity showcase
+    setTxns([
+      {
+        id: 1,
+        type: "standard",
+        amount: 5000,
+        desc: "Generator Service",
+        location: "Lekki Phase 1",
+        date: "Today, 2:30 PM",
+      },
+      { id: 2, type: "standard", amount: 3000, desc: "Car Wash", location: "Ikoyi", date: "Yesterday" },
+      { id: 3, type: "standard", amount: 12000, desc: "Plumbing Repair", location: "Yaba", date: "3 days ago" },
+      { id: 4, type: "withdrawal", amount: -15000, desc: "Withdrawal to GTBank", location: "", date: "Last week" },
+    ]);
   }, [isLoggedIn, userRole, nav]);
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText("https://areahustle.com/p/tunde-820");
+    toast.success("Passport link copied! Share it directly with lenders via WhatsApp.");
+  };
+
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-10">
-        <div className="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Financial Hub</div>
-        <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">Your Passport.</h1>
-        <p className="text-muted-foreground mt-2 max-w-lg">
-          Track your earnings, monitor your Trust Score, and manage your micro-loans all in one place.
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        {/* Wallet Card */}
-        <div className="rounded-3xl bg-card border shadow-elevated p-8 flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition duration-500">
-            <Wallet className="h-32 w-32" />
-          </div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground mb-4 font-semibold">
-              <Wallet className="h-4 w-4" /> Available Balance
+    <div className="min-h-screen bg-[#F9F9F8] font-sans pb-0">
+      {/* Top Header Navigation */}
+      <div className="sticky top-0 z-40 bg-[#F9F9F8]/80 backdrop-blur-md border-b px-4 sm:px-6 lg:px-8 py-4">
+        <div className="mx-auto max-w-5xl flex justify-between items-center">
+          <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D3B2E]">Financial Passport</h1>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Total Wallet Balance</div>
+              <div className="font-display font-bold text-lg text-[#0D3B2E]">₦42,000</div>
             </div>
-            <div className="font-display text-4xl sm:text-5xl font-bold text-foreground">
-              ₦<AnimatedNumber value={user.walletBalance} />
-            </div>
-          </div>
-          <div className="mt-8 relative z-10 flex gap-3">
-            <button className="flex-1 bg-primary text-primary-foreground rounded-2xl py-3.5 text-sm font-semibold hover:opacity-95 transition">
-              Withdraw Funds
-            </button>
-          </div>
-        </div>
-
-        {/* Trust Score Card */}
-        <div className="rounded-3xl bg-[#183620] text-white border border-[#2A4D33] shadow-elevated p-8 flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-48 h-48 bg-[#224A2D] rounded-full blur-3xl opacity-50"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#A3C9AE] mb-4 font-semibold">
-              <ShieldCheck className="h-4 w-4" /> AreaHustle Trust Score
-            </div>
-            <div className="flex items-end gap-3">
-              <div className="font-display text-5xl sm:text-6xl font-bold text-[#E2F1E6]">
-                <AnimatedNumber value={user.trustScore} />
-              </div>
-              <div className="text-[#A3C9AE] text-sm mb-2">/ 1000</div>
-            </div>
-            <p className="mt-4 text-sm text-[#A3C9AE] max-w-[250px]">
-              Your score gives you access to higher paying jobs and better micro-loan rates.
-            </p>
+            <div className="h-10 w-10 rounded-full bg-[#0D3B2E] text-white flex items-center justify-center font-bold shadow-soft">EA</div>
           </div>
         </div>
       </div>
 
-      {/* Micro Loan Module */}
-      {loan && (
-        <div className="rounded-3xl bg-muted/30 border border-dashed border-primary/20 p-8 mb-8 flex flex-col text-center sm:text-left sm:flex-row items-center justify-between gap-4">
-          <div className="flex-1">
-            <h3 className="font-display text-xl font-bold flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" /> Active Micro-Loan
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">Automatically sweeping {loan.sweep_percentage * 100}% of completed gigs.</p>
-          </div>
-          <div className="sm:text-right">
-            <div className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-1">Remaining</div>
-            <div className="font-display text-2xl font-bold text-destructive">{naira(loan.remaining_balance)}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Transactions List */}
-      <h2 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">
-        <History className="h-5 w-5 text-muted-foreground" /> Recent Transactions
-      </h2>
-      <div className="space-y-4">
-        {txns.map((t, idx) => (
-          <div
-            key={idx}
-            className="rounded-3xl bg-card border shadow-soft p-5 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between w-full"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className={`h-12 w-12 rounded-2xl flex items-center justify-center ${t.amount > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* The Trust Score Bento Box */}
+        <div className="rounded-[2rem] bg-white border border-gray-100 shadow-elevated p-6 sm:p-10 mb-8 animate-fade-up">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+            {/* Left: Dial & Copy Link */}
+            <div className="flex flex-col items-center text-center">
+              <div className="text-xs uppercase tracking-widest text-[#0D3B2E] font-semibold mb-2">Verified Trust Score</div>
+              <PassportTrustDial value={820} />
+              <button
+                onClick={handleCopyLink}
+                className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[#0D3B2E] text-white px-6 py-3 text-sm font-semibold hover:bg-[#0D3B2E]/90 transition shadow-soft w-full"
               >
-                {t.amount > 0 ? <ArrowDownRight className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
-              </div>
-              <div>
-                <div className="font-bold">{t.desc}</div>
-                <div className="text-xs text-muted-foreground">{t.date}</div>
-              </div>
+                <Share2 className="h-4 w-4" /> Copy Public Link
+              </button>
             </div>
-            <div className={`font-display text-xl font-bold self-end sm:self-center ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
-              {t.amount > 0 ? "+" : ""}
-              {naira(t.amount)}
+
+            {/* Right: Data Breakdown */}
+            <div className="flex-1 w-full bg-[#F9F9F8] rounded-3xl p-6 border border-gray-100">
+              <h3 className="text-sm font-bold text-[#0D3B2E] mb-5 uppercase tracking-wider">Score Breakdown</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-8">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Job Completion Rate</div>
+                  <div className="font-display text-2xl font-bold text-[#10B981]">
+                    94%{" "}
+                    <span className="text-[10px] bg-[#10B981]/10 text-[#10B981] px-2 py-0.5 rounded-full ml-1 align-middle uppercase">
+                      High Weight
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">On-Time Arrival</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">88%</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Repeat Hire Ratio</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">12%</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Dispute Rate</div>
+                  <div className="font-display text-xl font-bold text-[#0D3B2E]">0%</div>
+                </div>
+                <div className="sm:col-span-2 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
+                      <Clock className="h-4 w-4" /> Avg. Response Time
+                    </span>
+                    <span className="font-display text-lg font-bold text-[#0D3B2E]">&lt; 5 mins</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* The Transaction Ledger */}
+        <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
+          <h2 className="font-display text-xl font-bold mb-4 text-[#0D3B2E]">Recent Payouts</h2>
+          <div className="rounded-[2rem] bg-white border border-gray-100 shadow-soft p-2 sm:p-4">
+            <div className="space-y-2">
+              {txns.map((t, idx) => {
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 sm:p-6 rounded-3xl hover:bg-[#F9F9F8] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`h-12 w-12 shrink-0 rounded-full flex items-center justify-center ${t.amount > 0 ? "bg-[#10B981]/10 text-[#10B981]" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        {t.amount > 0 ? <ArrowDownRight className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                      </div>
+                      <div>
+                        <div className="font-bold text-[#0D3B2E]">{t.desc}</div>
+                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-2 mt-1">
+                          {t.location && <span>[{t.location}]</span>}
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {t.date}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`font-display text-xl font-bold self-end sm:self-center ${t.amount > 0 ? "text-[#10B981]" : "text-gray-900"}`}>
+                      {t.amount > 0 ? "+" : ""}
+                      {naira(t.amount)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Aethex Voice-Assisted Financial Passport FAB */}
+      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col items-end">
+        {voiceExpanded && (
+          <div className="mb-4 w-72 sm:w-80 bg-white rounded-3xl shadow-elevated border border-gray-100 p-6 animate-fade-up origin-bottom-right">
+            <div className="flex justify-between items-start mb-4">
+              <div className="text-xs font-bold uppercase tracking-widest text-[#4F46E5] flex items-center gap-1.5">
+                <Mic className="h-3 w-3 animate-pulse" /> Aethex Listening
+              </div>
+              <button onClick={() => setVoiceExpanded(false)} className="text-gray-400 hover:text-gray-700">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-lg font-display font-semibold text-[#0D3B2E] leading-snug">"What is my Trust Score?"</p>
+
+            {/* Simulated Audio Waveform */}
+            <div className="flex items-center justify-center gap-1 h-12 mt-6">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 bg-[#4F46E5] rounded-full animate-wave"
+                  style={{
+                    animationDelay: `${i * 0.05}s`,
+                    animationDuration: `${0.6 + (i % 3) * 0.2}s`,
+                    height: `${20 + Math.random() * 80}%`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!voiceExpanded && (
+          <button
+            onClick={() => setVoiceExpanded(true)}
+            className="group flex items-center gap-3 bg-[#4F46E5] text-white rounded-full p-4 pr-6 shadow-[0_8px_30px_rgb(79,70,229,0.3)] hover:scale-105 hover:bg-[#4338ca] transition-all duration-300 animate-fade-up"
+          >
+            <div className="relative">
+              <Mic className="h-6 w-6 relative z-10" />
+              <span className="absolute inset-0 rounded-full bg-white/20 animate-ping" style={{ animationDuration: "3s" }}></span>
+            </div>
+            <span className="font-semibold text-sm max-w-0 overflow-hidden opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-500 ease-in-out whitespace-nowrap">
+              Ask Aethex...
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );
