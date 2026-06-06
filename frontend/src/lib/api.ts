@@ -150,16 +150,79 @@ export const apiGetMe = () => fetchApi("/auth/me");
 
 
 
-// Passport & Finance
-export const apiGetPassport = () => fetchApi("/passport/me");
-export const apiGetTransactions = () => fetchApi("/passport/transactions");
-export const apiDemoSweep = (jobAmount: number) => {
-  return fetchApi("/passport/demo/complete-job-sweep", {
+
+// this is the PASSPORT API call
+
+
+export async function apiGetPassport() {
+  console.log("[apiGetPassport] Requesting passport details");
+  const response = await fetchApi("/passport/me", { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to fetch passport");
+  }
+  return responseData;
+}
+
+export async function apiStartVoiceSession() {
+  console.log("[apiStartVoiceSession] Starting voice session");
+  const response = await fetchApi("/passport/voice-session", { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to start voice session");
+  }
+  return responseData;
+}
+
+export async function apiProxyOffer(sessionId: string, sdpData: any) {
+  console.log("[apiProxyOffer] Proxying offer for session:", sessionId);
+  const response = await fetchApi(`/passport/voice-session/${sessionId}/offer`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ job_amount: jobAmount }),
+    body: JSON.stringify(sdpData),
   });
-};
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to proxy offer");
+  }
+  return responseData;
+}
+
+export async function apiDemoCompleteJobSweep(jobAmount: number = 5000.0) {
+  console.log("[apiDemoCompleteJobSweep] Triggering demo sweep for amount:", jobAmount);
+  // Based on the endpoint /demo/complete-job-sweep?job_amount=...
+  const response = await fetchApi(`/passport/demo/complete-job-sweep?job_amount=${jobAmount}`, { method: "POST" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Demo sweep failed");
+  }
+  return responseData;
+}
+
+export async function apiGetProofCard() {
+  console.log("[apiGetProofCard] Requesting proof card");
+  const response = await fetchApi("/passport/proof-card", { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to fetch proof card");
+  }
+  return responseData;
+}
+
+export async function apiListTransactions() {
+  console.log("[apiListTransactions] Requesting transaction list");
+  const response = await fetchApi("/passport/transactions", { method: "GET" });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.detail || "Failed to list transactions");
+  }
+  return responseData;
+}
 
 // Loans
 export const apiCreateLoan = (principal: number, sweepPercentage: number) => {
