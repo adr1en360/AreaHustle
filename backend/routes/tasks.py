@@ -56,6 +56,7 @@ async def create_task(
         description=task.description,
         budget=task.budget,
         neighbourhood=task.neighbourhood,
+        voice_transcript=task.voice_transcript,
     )
     result = await db.tasks.insert_one(new_task.dict(by_alias=True, exclude={"id"}))
     return {"id": str(result.inserted_id)}

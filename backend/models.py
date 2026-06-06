@@ -58,6 +58,7 @@ class Task(BaseModel):
     status: str = "open"  # open, matched, active, completed, disputed
     matched_hustler_id: Optional[str] = None
     voice_payload_url: Optional[str] = None
+    voice_transcript: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
@@ -66,6 +67,7 @@ class TaskCreate(BaseModel):
     description: str
     budget: float
     neighbourhood: str
+    voice_transcript: Optional[str] = None
 
 class Transaction(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
