@@ -34,51 +34,7 @@ async def get_my_passport(
     }
 
 
-@router.post("/voice-session")
-async def start_voice_session(
-    db: AsyncIOMotorDatabase = Depends(get_database),
-    current_user: dict = Depends(get_current_user),
-):
-    user_id = str(current_user.get("_id"))
-    profile = await db.hustler_profiles.find_one({"user_id": user_id})
-    if not profile:
-        profile = {"trust_score": 820, "completed_jobs": 15}
 
-    async with httpx.AsyncClient() as client:
-        headers = {"X-API-Key": settings.AETHEX_API_KEY, "Content-Type": "application/json"}
-        payload = {
-            "agent_id": settings.AETHEX_PASSPORT_AGENT_ID,
-            "metadata": {
-                "hustler_id": user_id,
-                "trust_score": profile.get("trust_score"),
-                "completed_jobs": profile.get("completed_jobs"),
-            },
-        }
-        response = await client.post(
-            f"{settings.AETHEX_BASE_URL}/conversation/connect",
-            json=payload,
-            headers=headers,
-        )
-
-        if response.status_code != 201:
-            raise HTTPException(status_code=response.status_code, detail=f"Aethex connection failed: {response.text}")
-
-        return response.json()
-
-
-@router.post("/voice-session/{session_id}/offer")
-async def proxy_offer(session_id: str, sdp_data: dict):
-    """
-    Proxies the WebRTC SDP offer from the browser to Aethex API.
-    """
-    async with httpx.AsyncClient() as client:
-        headers = {"X-API-Key": settings.AETHEX_API_KEY, "Content-Type": "application/json"}
-        response = await client.post(
-            f"{settings.AETHEX_BASE_URL}/conversation/{session_id}/offer",
-            json=sdp_data,
-            headers=headers,
-        )
-        return response.json()
 
 
 @router.post("/demo/complete-job-sweep")
