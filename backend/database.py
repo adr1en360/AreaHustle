@@ -1,20 +1,21 @@
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    MONGODB_URL: str = "mongodb://localhost:27017"
     DATABASE_NAME: str = "areahustle"
-    AETHEX_API_KEY: str = os.getenv("AETHEX_API_KEY", "")
+    AETHEX_API_KEY: str = ""
     AETHEX_BASE_URL: str = "https://api.aethexai.com/api/v1"
-    AETHEX_PASSPORT_AGENT_ID: str = os.getenv("AETHEX_PASSPORT_AGENT_ID", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    AETHEX_FROM_NUMBER: str = os.getenv("AETHEX_FROM_NUMBER", "")
-    AH_CALLBACK_URL: str = os.getenv("AH_CALLBACK_URL", "")
+    AETHEX_PASSPORT_AGENT_ID: str = ""
+    GEMINI_API_KEY: str = ""
+    AETHEX_FROM_NUMBER: str = ""
+    AH_CALLBACK_URL: str = ""
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
 
 settings = Settings()
 
