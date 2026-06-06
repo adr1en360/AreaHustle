@@ -52,7 +52,11 @@ async def redoc_html():
 
 @app.on_event("startup")
 async def startup_event():
-    await init_db()
+    try:
+        await init_db()
+        print("Database initialized successfully.")
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(tasks.router, prefix="/api/v1/tasks", tags=["Tasks"])
