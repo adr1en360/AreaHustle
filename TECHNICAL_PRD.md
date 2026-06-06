@@ -30,14 +30,8 @@
   3. Returns: `{ "category": ..., "neighbourhood": ..., "budget": ..., "description": ... }`.
   4. UI displays structured card. Customer confirms to publish task and locks escrow (mocked).
 
-### 2.2 Pillar 2: AI Agent Notifications & Agent Auto-Booking
-* **Purpose:** Proactively calls matched hustlers via outbound voice call (premium) to offer gigs and book them immediately on their behalf to prevent other hustlers in the queue from taking it.
-* **Backend Endpoint:** `POST /api/v1/tasks/notify-hustlers/{task_id}` & `POST /api/v1/tasks/call-hustler`
-* **Flow:**
-  1. Rank eligible hustlers in the task's neighbourhood.
-  2. Initiate premium outbound call to Hustler #1 via Aethex.
-  3. If Hustler answers and accepts via voice ("Yes") → The AI Agent instantly registers the match in the backend, booking the job on their behalf to lock it and prevent the next hustler in queue from claiming it.
-  4. If declined or no answer within **2 minutes** → place call to Hustler #2 (max 5 attempts).
+### 2.2 Pillar 2: AI Agent Notifications & Agent Auto-Booking (Mocked / Out of Scope)
+* **Purpose:** Outbound phone notifications queue. Not implemented in the active codebase (mocked for demo/pitch purposes). Standard manual job accept and completion routes are utilized for the task lifecycle.
 
 ### 2.3 Pillar 3: Financial Passport & Creditworthiness Proof Card
 * **Purpose:** Turns verified work history into structured, bureau-ready underwriting data.
@@ -120,7 +114,7 @@ Key routes required for the hackathon sprint:
 - `POST /api/v1/tasks/voice-extract` — Audio / transcript intent extraction
 - `POST /api/v1/tasks/{id}/match` — Hustler manual or voice acceptance
 - `POST /api/v1/tasks/{id}/complete` — Complete task & release escrow
-- `POST /api/v1/tasks/notify-hustlers/{task_id}` — Trigger Outbound Voice Matching Queue
-- `POST /api/v1/tasks/call-hustler` — Outbound AI agent call generator
+- `POST /api/v1/tasks/notify-hustlers/{task_id}` — Trigger Outbound Voice Matching Queue (Mocked / Out of Scope)
+- `POST /api/v1/tasks/call-hustler` — Outbound AI agent call generator (Mocked / Out of Scope)
 - `GET /api/v1/passport/me` — Retrieve Financial Passport metrics
 - `GET /api/v1/passport/proof-card` — Get Verification Hash & Proof Card data

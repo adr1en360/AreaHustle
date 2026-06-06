@@ -41,6 +41,12 @@ async def extract_intent(text: str):
     return response.parsed
 
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    budget: Optional[float] = None
+
+
 # --- Task CRUD + lifecycle ---
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -54,6 +60,7 @@ async def create_task(
 
     new_task = Task(
         customer_id=str(current_user.get("_id")),
+        title=task.title or task.category,
         category=task.category,
         description=task.description,
         budget=task.budget,
@@ -62,6 +69,37 @@ async def create_task(
     )
     result = await db.tasks.insert_one(new_task.dict(by_alias=True, exclude={"id"}))
     return {"id": str(result.inserted_id)}
+
+
+@router.put("/{task_id}")
+async def update_task(
+    task_id: str,
+    task_update: TaskUpdate,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    if current_user.get("role") != "customer":
+        raise HTTPException(status_code=403, detail="Only customers can update tasks")
+
+    existing_task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if not existing_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if existing_task.get("customer_id") != str(current_user.get("_id")):
+        raise HTTPException(status_code=403, detail="You do not own this task")
+
+    update_data = {}
+    if task_update.title is not None:
+        update_data["title"] = task_update.title
+    if task_update.description is not None:
+        update_data["description"] = task_update.description
+    if task_update.budget is not None:
+        update_data["budget"] = task_update.budget
+
+    if update_data:
+        await db.tasks.update_one({"_id": ObjectId(task_id)}, {"$set": update_data})
+
+    return {"message": "Task updated successfully", "task_id": task_id}
 
 
 @router.get("/")
@@ -83,6 +121,23 @@ async def list_tasks(
     tasks = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
+        
+        # Join Customer details
+        cust_id = doc.get("customer_id")
+        if cust_id:
+            cust = await db.users.find_one({"_id": ObjectId(cust_id)})
+            if cust:
+                doc["customer_name"] = cust.get("name", "")
+                doc["customer_phone"] = cust.get("phone_number", "")
+                
+        # Join Hustler details
+        hust_id = doc.get("matched_hustler_id")
+        if hust_id:
+            hust = await db.users.find_one({"_id": ObjectId(hust_id)})
+            if hust:
+                doc["hustler_name"] = hust.get("name", "")
+                doc["hustler_phone"] = hust.get("phone_number", "")
+                
         tasks.append(doc)
     return tasks
 
@@ -99,6 +154,23 @@ async def my_tasks(
     tasks = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
+        
+        # Join Customer details
+        cust_id = doc.get("customer_id")
+        if cust_id:
+            cust = await db.users.find_one({"_id": ObjectId(cust_id)})
+            if cust:
+                doc["customer_name"] = cust.get("name", "")
+                doc["customer_phone"] = cust.get("phone_number", "")
+                
+        # Join Hustler details
+        hust_id = doc.get("matched_hustler_id")
+        if hust_id:
+            hust = await db.users.find_one({"_id": ObjectId(hust_id)})
+            if hust:
+                doc["hustler_name"] = hust.get("name", "")
+                doc["hustler_phone"] = hust.get("phone_number", "")
+                
         tasks.append(doc)
     return tasks
 
@@ -154,15 +226,90 @@ async def complete_task(
     task = await db.tasks.find_one({"_id": ObjectId(task_id)})
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    if task.get("status") != "active":
-        raise HTTPException(status_code=400, detail="Task must be active before completion")
 
-    from datetime import datetime
-    await db.tasks.update_one(
-        {"_id": ObjectId(task_id)},
-        {"$set": {"status": "completed", "completed_at": datetime.utcnow()}},
-    )
-    return {"message": "Task completed", "task_id": task_id}
+    role = current_user.get("role")
+    user_id = str(current_user.get("_id"))
+    status_val = task.get("status")
+
+    if role == "hustler":
+        if status_val != "active":
+            raise HTTPException(status_code=400, detail="Task must be active to complete")
+
+        if task.get("matched_hustler_id") != user_id:
+            raise HTTPException(status_code=403, detail="You are not assigned to this task")
+
+        await db.tasks.update_one(
+            {"_id": ObjectId(task_id)},
+            {"$set": {"status": "awaiting_confirmation"}}
+        )
+        return {"message": "Awaiting customer confirmation", "status": "awaiting_confirmation", "task_id": task_id}
+
+    elif role == "customer":
+        from datetime import datetime
+        budget = task.get("budget", 0.0)
+
+        # Enforce check constraints to prevent negative customer balance
+        if current_user.get("wallet_balance", 0.0) < budget:
+            raise HTTPException(status_code=400, detail="Insufficient wallet balance to release payment")
+
+        if status_val != "awaiting_confirmation" and status_val != "active":
+            raise HTTPException(status_code=400, detail="Task is not ready for escrow release")
+
+        if task.get("customer_id") != user_id:
+            raise HTTPException(status_code=403, detail="You do not own this task")
+
+        hustler_id = task.get("matched_hustler_id")
+
+        if hustler_id:
+            await db.transactions.insert_one({
+                "user_id": hustler_id,
+                "task_id": task_id,
+                "type": "payout",
+                "amount": budget,
+                "desc": task.get("title") or task.get("category", "Payout"),
+                "location": task.get("neighbourhood", "Local"),
+                "timestamp": datetime.utcnow()
+            })
+            await db.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$inc": {"wallet_balance": -budget}}
+            )
+            await db.users.update_one(
+                {"_id": ObjectId(hustler_id)},
+                {"$inc": {"wallet_balance": budget}}
+            )
+
+            profile = await db.hustler_profiles.find_one({"user_id": hustler_id})
+            inc_30 = (profile.get("income_30d", 45000.0) if profile else 45000.0) + budget
+            inc_60 = (profile.get("income_60d", 82000.0) if profile else 82000.0) + budget
+            inc_90 = (profile.get("income_90d", 135000.0) if profile else 135000.0) + budget
+            consistency = min(1.0, (profile.get("income_consistency_index", 0.72) if profile else 0.72) + 0.02)
+            tenure = profile.get("platform_tenure_months", 8) if profile else 8
+
+            await db.hustler_profiles.update_one(
+                {"user_id": hustler_id},
+                {
+                    "$inc": {"completed_jobs": 1, "trust_score": 15},
+                    "$set": {
+                        "completion_rate": 98.0,
+                        "income_30d": inc_30,
+                        "income_60d": inc_60,
+                        "income_90d": inc_90,
+                        "income_consistency_index": consistency,
+                        "platform_tenure_months": tenure
+                    }
+                },
+                upsert=True
+            )
+
+        await db.tasks.update_one(
+            {"_id": ObjectId(task_id)},
+            {"$set": {"status": "completed", "completed_at": datetime.utcnow()}}
+        )
+        return {"message": "Payment released and task completed", "status": "completed", "task_id": task_id}
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid role")
 
 
 # --- Voice-to-intent ---

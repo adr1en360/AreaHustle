@@ -20,7 +20,16 @@ async def get_my_passport(
 
     if not profile:
         # Seed fallback for demo if profile missing
-        profile = {"trust_score": 820, "completed_jobs": 15}
+        profile = {
+            "trust_score": 820,
+            "completed_jobs": 15,
+            "completion_rate": 98.0,
+            "on_time_arrival": 95.0,
+            "repeat_hire_ratio": 0.66,
+            "dispute_rate": 0.02,
+            "service_areas": [],
+            "categories": []
+        }
 
     return {
         "user_id": user_id,
@@ -28,7 +37,10 @@ async def get_my_passport(
         "wallet_balance": user.get("wallet_balance", 0.0),
         "trust_score": profile.get("trust_score", 500),
         "completed_jobs": profile.get("completed_jobs", 0),
-        "completion_rate": profile.get("completion_rate", 0.0),
+        "job_completion_rate": int(profile.get("completion_rate", 98.0)),
+        "on_time_arrival": int(profile.get("on_time_arrival", 95.0)),
+        "repeat_hire_ratio": int(profile.get("repeat_hire_ratio", 0.66) * 100),
+        "dispute_rate": int(profile.get("dispute_rate", 0.02) * 100),
         "service_areas": profile.get("service_areas", []),
         "categories": profile.get("categories", []),
     }
@@ -100,53 +112,32 @@ async def get_proof_card(
         profile = {
             "trust_score": 820,
             "completed_jobs": 47,
-            "completion_rate": 0.94,
+            "completion_rate": 98.0,
             "repeat_hire_ratio": 0.66,
             "dispute_rate": 0.02,
+            "income_30d": 45000.0,
+            "income_60d": 82000.0,
+            "income_90d": 135000.0,
+            "income_consistency_index": 0.72,
+            "platform_tenure_months": 8,
             "categories": ["Generator Service", "Car Wash"],
             "service_areas": ["Lekki Phase 1", "Ajah"]
         }
-
-    is_demo_emeka = current_user.get("email") == "hustler@areahustle.com" or profile.get("trust_score", 0) >= 800
-
-    if is_demo_emeka:
-        verified_income_30d = 45000.0
-        verified_income_60d = 82000.0
-        verified_income_90d = 135000.0
-        consistency_index = 0.72
-        tenure = 8
-        avg_response = 4.2
-        completed_jobs = profile.get("completed_jobs", 47)
-        if completed_jobs < 47:
-            completed_jobs = 47
-    else:
-        completed_jobs = profile.get("completed_jobs", 0)
-        tenure = 1
-        avg_response = 10.0
-        cursor = db.transactions.find({"user_id": user_id, "type": "payout"})
-        total_payout = 0.0
-        async for tx in cursor:
-            total_payout += tx.get("amount", 0.0)
-            
-        verified_income_30d = total_payout
-        verified_income_60d = total_payout
-        verified_income_90d = total_payout
-        consistency_index = 0.50 if total_payout > 0 else 0.0
 
     return {
         "hustler_id": f"ah_v2_{user_id[:12]}",
         "hustler_name": current_user.get("name", "Hustler"),
         "kyc_tier": current_user.get("kyc_tier", 2),
-        "platform_tenure_months": tenure,
-        "verified_income_30d": verified_income_30d,
-        "verified_income_60d": verified_income_60d,
-        "verified_income_90d": verified_income_90d,
-        "income_consistency_index": consistency_index,
-        "total_jobs_completed": completed_jobs,
-        "completion_rate": profile.get("completion_rate", 0.94),
+        "platform_tenure_months": profile.get("platform_tenure_months", 8),
+        "verified_income_30d": profile.get("income_30d", 45000.0),
+        "verified_income_60d": profile.get("income_60d", 82000.0),
+        "verified_income_90d": profile.get("income_90d", 135000.0),
+        "income_consistency_index": profile.get("income_consistency_index", 0.72),
+        "total_jobs_completed": profile.get("completed_jobs", 47),
+        "completion_rate": profile.get("completion_rate", 98.0),
         "repeat_hire_ratio": profile.get("repeat_hire_ratio", 0.66),
         "dispute_rate": profile.get("dispute_rate", 0.02),
-        "avg_response_time_minutes": avg_response,
+        "avg_response_time_minutes": 4.2,
         "categories": profile.get("categories", ["Generator Service", "Car Wash"]),
         "service_areas": profile.get("service_areas", ["Lekki Phase 1", "Ajah"]),
         "generated_at": datetime.utcnow().isoformat(),
@@ -163,6 +154,11 @@ async def list_transactions(
     cursor = db.transactions.find({"user_id": user_id}).sort("timestamp", -1).limit(50)
     txs = []
     async for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        txs.append(doc)
+        txs.append({
+            "id": str(doc["_id"]),
+            "amount": doc.get("amount", 0.0),
+            "desc": doc.get("desc", doc.get("type", "Payout").capitalize()),
+            "location": doc.get("location", "Local"),
+            "date": doc.get("timestamp").strftime("%b %d, %H:%M") if doc.get("timestamp") else ""
+        })
     return txs

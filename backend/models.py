@@ -8,6 +8,7 @@ class User(BaseModel):
     hashed_password: str
     role: str  # "customer" or "hustler"
     name: str = ""
+    phone_number: str = ""
     kyc_tier: int = 1
     kyc_status: str = "pending"
     wallet_balance: float = 0.0
@@ -19,6 +20,7 @@ class UserCreate(BaseModel):
     password: str
     role: str
     name: str = ""
+    phone_number: str = ""
     language_preference: str = "english"
 
 class UserLogin(BaseModel):
@@ -30,6 +32,7 @@ class UserPublic(BaseModel):
     email: EmailStr
     role: str
     name: str
+    phone_number: str = ""
     wallet_balance: float
     language_preference: str
 
@@ -38,9 +41,15 @@ class HustlerProfile(BaseModel):
     user_id: str
     trust_score: int = 500
     completed_jobs: int = 0
-    completion_rate: float = 0.0
-    repeat_hire_ratio: float = 0.0
-    dispute_rate: float = 0.0
+    completion_rate: float = 98.0
+    on_time_arrival: float = 95.0
+    repeat_hire_ratio: float = 0.66
+    dispute_rate: float = 0.02
+    income_30d: float = 0.0
+    income_60d: float = 0.0
+    income_90d: float = 0.0
+    income_consistency_index: float = 0.72
+    platform_tenure_months: int = 8
     service_areas: List[str] = []
     categories: List[str] = []
 
@@ -51,6 +60,7 @@ class HustlerProfileCreate(BaseModel):
 class Task(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     customer_id: str
+    title: str = ""
     category: str
     description: str
     budget: float
@@ -63,6 +73,7 @@ class Task(BaseModel):
     completed_at: Optional[datetime] = None
 
 class TaskCreate(BaseModel):
+    title: str = ""
     category: str
     description: str
     budget: float
@@ -75,6 +86,8 @@ class Transaction(BaseModel):
     task_id: Optional[str] = None
     type: str  # escrow_hold, payout, topup, withdrawal
     amount: float
+    desc: str = ""
+    location: str = ""
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class TransactionCreate(BaseModel):
@@ -82,3 +95,5 @@ class TransactionCreate(BaseModel):
     task_id: Optional[str] = None
     type: str
     amount: float
+    desc: str = ""
+    location: str = ""

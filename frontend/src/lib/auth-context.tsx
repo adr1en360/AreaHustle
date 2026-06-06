@@ -17,6 +17,7 @@ type AuthContextType = {
   setAreas: (areas: string[]) => void;
   updateDemoBalance: (role: string, amount: number) => void;
   addDemoTransaction: (txn: any) => void;
+  refreshUser?: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,19 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [areas, setAreas] = useState<string[]>([]);
 
   const syncDemoState = (u: any) => {
-    if (!u) return u;
-    const isCustomer = u.role === "customer";
+    return u;
+  };
 
-    if (isCustomer && !localStorage.getItem("demo_customer_balance")) {
-      localStorage.setItem("demo_customer_balance", "1000000");
+  const refreshUser = async () => {
+    if (token) {
+      try {
+        const u = await api.getMe();
+        setUser(u);
+      } catch (e) {}
     }
-    if (!isCustomer && !localStorage.getItem("demo_hustler_balance")) {
-      localStorage.setItem("demo_hustler_balance", "0");
-    }
-
-    const balance = parseInt(localStorage.getItem(isCustomer ? "demo_customer_balance" : "demo_hustler_balance") || "0");
-    const trustScore = parseInt(localStorage.getItem("demo_hustler_trust") || "820");
-    return { ...u, wallet_balance: balance, trust_score: trustScore };
   };
 
   useEffect(() => {
@@ -92,34 +90,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateDemoBalance = (role: string, amount: number) => {
-    const key = role === "customer" ? "demo_customer_balance" : "demo_hustler_balance";
-    const current = parseInt(localStorage.getItem(key) || (role === "customer" ? "1000000" : "0"));
-    const newBalance = current + Number(amount);
-    localStorage.setItem(key, newBalance.toString());
-
-    setUser((prev: any) => {
-      if (prev && prev.role === role) {
-        return { ...prev, wallet_balance: newBalance };
-      }
-      return prev;
-    });
+    refreshUser();
   };
 
   const addDemoTransaction = (txn: any) => {
-    const txns = JSON.parse(localStorage.getItem("demo_transactions") || "[]");
-    txns.unshift(txn);
-    localStorage.setItem("demo_transactions", JSON.stringify(txns));
-
-    const trust = parseInt(localStorage.getItem("demo_hustler_trust") || "820");
-    const newTrust = Math.min(1000, trust + 15);
-    localStorage.setItem("demo_hustler_trust", newTrust.toString());
-
-    setUser((prev: any) => {
-      if (prev && prev.role === "hustler") {
-        return { ...prev, trust_score: newTrust };
-      }
-      return prev;
-    });
+    refreshUser();
   };
 
   return (
@@ -139,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAreas,
         updateDemoBalance,
         addDemoTransaction,
+        refreshUser,
       }}
     >
       {children}

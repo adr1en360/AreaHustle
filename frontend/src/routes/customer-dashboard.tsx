@@ -34,7 +34,17 @@ function CustomerDashboard() {
     queryKey: ["customerJobs"],
     queryFn: () => api.getMyTasks(),
     enabled: isLoggedIn,
+    refetchInterval: 3000,
   });
+
+  const { refreshUser } = useAuth();
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const timer = setInterval(() => {
+      if (refreshUser) refreshUser();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [isLoggedIn, refreshUser]);
 
   const confirmMutation = useMutation({
     mutationFn: (id: string) => api.completeTask(id),
@@ -44,14 +54,6 @@ function CustomerDashboard() {
       const job = myJobs.find((j: any) => (j.id || j._id) == variables);
       if (job) {
         const amount = Number(job.budget) || 0;
-        updateDemoBalance("customer", -amount);
-        updateDemoBalance("hustler", amount);
-        addDemoTransaction({
-          amount: amount,
-          desc: job.title || job.category || "Job completed",
-          location: job.location || job.neighbourhood || "Local",
-          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-        });
       }
 
       queryClient.invalidateQueries({ queryKey: ["customerJobs"] });

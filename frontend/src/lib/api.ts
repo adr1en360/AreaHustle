@@ -85,5 +85,6 @@ export const api = {
 
   // Passport & Transactions
   getPassport: () => fetchApi("/passport/me"),
+  getProofCard: () => fetchApi("/passport/proof-card"),
   getTransactions: () => fetchApi("/transactions/"),
 };

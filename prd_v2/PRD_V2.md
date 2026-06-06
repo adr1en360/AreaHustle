@@ -300,12 +300,12 @@ After 3-4 successful jobs, the customer has the hustler's WhatsApp. They transac
 
 ### In Scope
 - Voice-to-Intent task posting (live)
-- AI Agent outbound notification (live or SMS/push fallback)
 - Creditworthiness Proof Card (visual, shareable)
 - Task lifecycle (post → match → complete)
 - Seeded demo data (3-5 hustler profiles with full history)
 
-### Mocked
+### Mocked / Out of Scope
+- AI Agent outbound calling queue
 - KYC verification ("Verified ✓")
 - Paystack escrow (UI state change)
 - Full neighbourhood geodata

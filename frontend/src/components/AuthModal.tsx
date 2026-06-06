@@ -11,6 +11,7 @@ export function AuthModal({ open, onClose, initialRole, initialMode }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
 
@@ -32,7 +33,7 @@ export function AuthModal({ open, onClose, initialRole, initialMode }: any) {
         loggedInUser = await login({ username: email, password });
         toast.success("Logged in successfully!");
       } else {
-        loggedInUser = await register({ email, password, name, role, language_preference: "english" });
+        loggedInUser = await register({ email, password, name, role, phone_number: phone, language_preference: "english" });
         toast.success("Registered successfully!");
       }
       onClose();
@@ -86,6 +87,17 @@ export function AuthModal({ open, onClose, initialRole, initialMode }: any) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-muted-foreground">Phone Number</label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  placeholder="e.g. +234 809 876 5432"
                   className="mt-1 w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-primary"
                 />
               </div>

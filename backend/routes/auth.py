@@ -83,6 +83,7 @@ async def register(user: UserCreate, db: AsyncIOMotorDatabase = Depends(get_data
         hashed_password=hashed,
         role=user.role,
         name=user.name,
+        phone_number=user.phone_number,
         language_preference=user.language_preference,
     )
     result = await db.users.insert_one(new_user.dict(by_alias=True, exclude={"id"}))
@@ -118,6 +119,7 @@ async def read_users_me(current_user: dict = Depends(get_current_user)):
         email=current_user.get("email"),
         role=current_user.get("role"),
         name=current_user.get("name", ""),
+        phone_number=current_user.get("phone_number", ""),
         wallet_balance=current_user.get("wallet_balance", 0.0),
         language_preference=current_user.get("language_preference", "english"),
     )

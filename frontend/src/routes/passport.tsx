@@ -76,10 +76,17 @@ function PassportPage() {
   const { isLoggedIn, userRole, user } = useAuth();
   const nav = useNavigate();
   const [voiceExpanded, setVoiceExpanded] = useState(false);
+  const [proofOpen, setProofOpen] = useState(false);
 
   const { data: passport } = useQuery({
     queryKey: ["passport"],
     queryFn: () => api.getPassport(),
+    enabled: isLoggedIn,
+  });
+
+  const { data: proofCard } = useQuery({
+    queryKey: ["proofCard"],
+    queryFn: () => api.getProofCard(),
     enabled: isLoggedIn,
   });
 
@@ -89,12 +96,7 @@ function PassportPage() {
     enabled: isLoggedIn,
   });
 
-  const [demoTxns, setDemoTxns] = useState<any[]>([]);
-  useEffect(() => {
-    setDemoTxns(JSON.parse(localStorage.getItem("demo_transactions") || "[]"));
-  }, []);
-
-  const txns = [...demoTxns, ...apiTxns];
+  const txns = apiTxns;
 
   useEffect(() => {
     if (!isLoggedIn || userRole !== "hustler") nav({ to: "/" });
@@ -134,6 +136,12 @@ function PassportPage() {
                 className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[#0D3B2E] text-white px-6 py-3 text-sm font-semibold hover:bg-[#0D3B2E]/90 transition shadow-soft w-full"
               >
                 <Share2 className="h-4 w-4" /> Copy Public Link
+              </button>
+              <button
+                onClick={() => setProofOpen(true)}
+                className="mt-3 flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white text-[#0D3B2E] px-6 py-3 text-sm font-semibold hover:bg-gray-50 transition shadow-soft w-full"
+              >
+                <CreditCard className="h-4 w-4" /> Generate Proof Card
               </button>
             </div>
 
@@ -260,6 +268,93 @@ function PassportPage() {
           </button>
         )}
       </div>
+
+      {/* Holographic Proof Card Modal */}
+      {proofOpen && proofCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[#0D3B2E]/40 animate-in fade-in">
+          <div className="relative w-full max-w-lg rounded-[2.5rem] bg-gradient-to-br from-[#0D3B2E] via-[#164e3c] to-[#0A261E] border-2 border-[#10B981]/40 shadow-[0_20px_50px_rgba(16,185,129,0.3)] p-8 overflow-hidden text-white">
+            
+            {/* Ambient holographic glow accents */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-60 h-60 rounded-full bg-[#10B981]/20 blur-[60px]" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-[#4F46E5]/20 blur-[60px]" />
+
+            <button 
+              onClick={() => setProofOpen(false)} 
+              className="absolute right-6 top-6 text-[#10B981]/70 hover:text-white transition"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            <div className="flex justify-between items-start mb-8 border-b border-[#10B981]/20 pb-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-widest text-[#10B981] font-bold">AreaHustle V2.0</div>
+                <h2 className="font-display text-2xl font-bold tracking-tight">Verified Credential</h2>
+              </div>
+              <ShieldCheck className="h-10 w-10 text-[#10B981] drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            </div>
+
+            {/* Premium holographic chip layout */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 mb-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <div className="text-xs text-white/50 uppercase tracking-widest font-semibold">Credential Owner</div>
+                  <div className="text-lg font-bold font-display tracking-tight text-white mt-0.5">{proofCard.hustler_name}</div>
+                </div>
+                <div className="h-8 w-12 rounded bg-gradient-to-r from-yellow-500/80 to-yellow-400/80 border border-white/20 relative overflow-hidden">
+                  {/* Holographic Chip Lines */}
+                  <div className="absolute inset-x-0 top-1/2 h-[1px] bg-white/20" />
+                  <div className="absolute inset-y-0 left-1/2 w-[1px] bg-white/20" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">Hustler ID</div>
+                  <div className="font-mono text-xs font-semibold tracking-wider text-[#10B981] mt-0.5">{proofCard.hustler_id}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">Tenure</div>
+                  <div className="font-semibold text-white mt-0.5">{proofCard.platform_tenure_months} Months</div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">30d Income</div>
+                  <div className="font-display font-bold text-[#10B981] text-base mt-0.5">{naira(proofCard.verified_income_30d)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">90d Income</div>
+                  <div className="font-display font-bold text-white mt-0.5">{naira(proofCard.verified_income_90d)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">Income Consistency</div>
+                  <div className="font-semibold text-white mt-0.5 flex items-center gap-1.5">
+                    {Math.round(proofCard.income_consistency_index * 100)}% <TrendingUp className="h-3.5 w-3.5 text-[#10B981]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-white/40 uppercase tracking-wider">Jobs Completed</div>
+                  <div className="font-semibold text-white mt-0.5">{proofCard.total_jobs_completed} Tasks</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs text-white/40">
+                <span>Verification Hash: {proofCard.verification_hash}</span>
+                <span>Generated: {new Date(proofCard.generated_at).toLocaleDateString()}</span>
+              </div>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(proofCard, null, 2));
+                  toast.success("Credential verification payload copied!");
+                }}
+                className="w-full rounded-full bg-[#10B981] hover:bg-[#0da06f] text-[#0D3B2E] font-bold py-3.5 text-sm transition shadow-lg shadow-[#10B981]/20 flex items-center justify-center gap-2"
+              >
+                Copy Cryptographic Proof Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

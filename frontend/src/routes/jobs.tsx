@@ -34,13 +34,24 @@ function Jobs() {
     queryKey: ["marketJobs", location],
     queryFn: () => api.getTasks({ status: "open", neighbourhood: location || undefined }),
     enabled: isLoggedIn && tab === "market",
+    refetchInterval: 3000,
   });
 
   const { data: myGigs = [], isLoading: loadingMyGigs } = useQuery({
     queryKey: ["myGigs"],
     queryFn: () => api.getMyTasks(),
     enabled: isLoggedIn && tab === "my-gigs",
+    refetchInterval: 3000,
   });
+
+  const { refreshUser } = useAuth();
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const timer = setInterval(() => {
+      if (refreshUser) refreshUser();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [isLoggedIn, refreshUser]);
 
   const acceptMutation = useMutation({
     mutationFn: (id: string) => api.matchTask(id),
@@ -83,14 +94,6 @@ function Jobs() {
       const job = myGigs.find((j: any) => (j.id || j._id) == variables);
       if (job) {
         const amount = Number(job.budget) || 0;
-        updateDemoBalance("customer", -amount);
-        updateDemoBalance("hustler", amount);
-        addDemoTransaction({
-          amount: amount,
-          desc: job.title || job.category || "Job completed",
-          location: job.location || job.neighbourhood || "Local",
-          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-        });
       }
 
       queryClient.invalidateQueries({ queryKey: ["myGigs"] });
