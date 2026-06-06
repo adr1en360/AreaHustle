@@ -8,7 +8,7 @@ from database import init_db
 
 app = FastAPI(
     title="AreaHustle API",
-    version="3.0",
+    version="2.0",
     docs_url=None,
     redoc_url=None,
 )
@@ -72,5 +72,5 @@ app.include_router(transactions.router, prefix="/api/v1/transactions", tags=["Tr
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to AreaHustle API v3.0"}
+    return {"message": "Welcome to AreaHustle API v2.0"}
 

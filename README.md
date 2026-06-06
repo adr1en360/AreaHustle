@@ -2,7 +2,7 @@
 
 **"Your Area. Your Hustle. Your Proof."**
 
-AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work into bankable creditworthiness proof. It leverages **Voice-first AI** to bridge the digital literacy gap, allowing middle-class households and small businesses to post tasks, and informal workers (Hustlers) to build a verified financial identity that unlocks credit access.
+AreaHustle is a voice-first hyper-local gig marketplace that turns informal work into bankable creditworthiness proof. It leverages **Voice-first AI** to bridge the digital literacy gap, allowing middle-class households and small businesses to post tasks, and informal workers (Hustlers) to build a verified financial identity that unlocks credit access.
 
 ---
 
@@ -10,7 +10,7 @@ AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work
 
 - **🎙️ Pillar 1: Voice-to-Intent Task Posting:** Post jobs like "Car Wash" or "Generator Repair" just by speaking. Powered by **Aethex Speech-to-Text** and **Google Gemini Flash** for structured JSON intent extraction.
 - **📞 Pillar 2: AI Agent Outbound Calling & Auto-Booking:** Matched premium providers receive direct voice calls from an Aethex Outbound AI Agent to accept gigs. Upon acceptance, the agent immediately claims and books the job on their behalf to prevent others in the queue from taking it.
-- **💳 Pillar 3: Financial Passport & Creditworthiness Proof Card:** Hustlers track their standings via a premium visual dashboard and generate a shareable, cryptographically hashed alternative data card aligned with the **Nigerian Credit Reporting Act of 2017**.
+- **💳 Pillar 3: Financial Passport & Creditworthiness Proof Card:** Hustlers track their standings via a premium visual dashboard and generate a shareable, glassmorphic holographic Creditworthiness Proof Card containing verified 30/60/90d earnings, consistency indicators, and a verification hash.
 
 ---
 
@@ -21,6 +21,7 @@ AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work
 - **Database:** [MongoDB](https://www.mongodb.com/) (Async with Motor Driver)
 - **Voice AI Platform:** [Aethex API](https://developers.aethexai.com/)
 - **Large Language Model:** [Google Gemini Flash](https://ai.google.dev/)
+- **Frontend:** React, Vite, TypeScript, TailwindCSS/Vanilla CSS, Lucide Icons
 
 ---
 
@@ -57,7 +58,16 @@ AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work
    GEMINI_API_KEY="your_gemini_key"
    ```
 
-4. **Start the API server:**
+4. **Seed the Database for the Demo:**
+   Initialize MongoDB with high-fidelity demo users, profiles, and tasks:
+   ```bash
+   uv run python seed_demo.py
+   ```
+   This seeds:
+   - **Customer:** `customer@areahustle.com` (Password: `password123`) loaded with `₦150,000` wallet balance.
+   - **Hustler (Emeka):** `hustler@areahustle.com` (Password: `password123`) loaded with `₦82,000`, trust score `850`, 30/60/90d alternative credit indicators, past completed payouts, and pre-matched tasks.
+
+5. **Start the API server:**
    ```bash
    uv run uvicorn main:app --reload
    ```
@@ -78,20 +88,26 @@ AreaHustle is a voice-first hyper-local gig marketplace that turns everyday work
 ## 📖 API Usage Highlights
 
 ### Post Task via Voice Intent Extraction
-`POST /api/v1/tasks/voice-extract`
-- Transcribes customer audio and extracts structured task fields via Gemini Flash.
+`POST /api/v1/tasks/voice-to-intent/upload`
+- Accepts multipart form uploads of customer voice recordings, transcribes them using Aethex Kora, and extracts structured fields using Google Gemini.
 
-### Trigger AI Outbound Matching
-`POST /api/v1/tasks/notify-hustlers/{task_id}`
-- Starts the voice queue matching workflow.
-
-### Outbound call trigger & booking handler
-`POST /api/v1/tasks/call-hustler`
-- Triggers a premium voice call to offer the task and book it on behalf of the hustler upon acceptance.
+### Mutual Complete & Escrow Release
+`POST /api/v1/tasks/{task_id}/complete`
+- Moves task to `"awaiting_confirmation"` when clicked by the assigned Hustler. Releasing the escrow payment updates user wallet balances and increments Hustler alternative credit metrics in the database only when confirmed by the Customer.
 
 ### Generate Creditworthiness Proof Card
 `GET /api/v1/passport/proof-card`
-- Computes verified 90-day earnings velocity, consistency index, and returns a secure verification hash.
+- Computes verified 30/60/90-day earnings velocity, consistency index, and returns a secure verification hash.
+
+---
+
+## 🧪 Testing
+
+Run backend tests using pytest:
+```bash
+cd backend
+uv run pytest
+```
 
 ---
 
