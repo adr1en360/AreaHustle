@@ -18,3 +18,5 @@
 | **`FAILED_ATTEMPTS.md`** | **The Log:** Record of technical dead-ends. | When an approach fails. |
 | **`council_review.md`** *(artifact)* | **Pre-pivot Review:** 6-critic analysis on v1.0 concept. Historical. | Reference only. |
 | **`council_review_v2.md`** *(artifact)* | **Post-pivot Review:** 4-critic pitch panel on v2.0 concept. Contains edge case resolutions, competitive matrix, and concept definition. | Before pitch prep. |
+| **`walkthrough.md`** *(artifact)* | **Implementation Summary:** Details the integration of Aethex voice upload, Gemini intent extraction, and auto-populating the Post Task form fields. | For review of the voice integration. |
+

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aethex Voice Lab · AreaHustle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #0f0f13;
+      --card: rgba(23, 23, 33, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --secondary: #10b981;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --error: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      background: rgba(10, 10, 15, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+      margin-bottom: 1.25rem;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+
+    button {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0.85rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    button:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+    }
+
+    button.secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .user-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 1.5rem;
+    }
+
+    .user-badge span {
+      font-size: 0.9rem;
+    }
+
+    .user-badge button {
+      width: auto;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+
+    .user-badge button:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Voice / Recording section */
+    .record-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .mic-button {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #f43f5e;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .mic-button.recording {
+      animation: pulse 1.5s infinite;
+      background: #e11d48;
+    }
+
+    .mic-icon {
+      width: 36px;
+      height: 36px;
+      fill: #fff;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 20px rgba(244, 63, 94, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+      }
+    }
+
+    .status-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .response-area {
+      margin-top: 1.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .response-area h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #34d399;
+    }
+
+    /* Waveform visualizer */
+    .visualizer-container {
+      width: 100%;
+      height: 60px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      margin: 1rem 0;
+    }
+
+    .bar {
+      width: 3px;
+      height: 5px;
+      background: #f43f5e;
+      border-radius: 3px;
+      transition: height 0.1s ease;
+    }
+
+    /* TTS styling */
+    .audio-player-container {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    audio {
+      width: 100%;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Aethex Voice Lab</h1>
+    <p class="subtitle">Log in to test Speech-to-Text & Text-to-Speech APIs</p>
+  </header>
+
+  <div class="container">
+    <!-- Login Card -->
+    <div id="loginCard" class="card">
+      <h2 style="font-family: 'Outfit'; font-size: 1.5rem; margin-bottom: 1.5rem;">Secure Access</h2>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="customer@areahustle.com">
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="••••••••">
+
+        <button type="submit">Log In</button>
+      </form>
+    </div>
+
+    <!-- Main Lab Card -->
+    <div id="labCard" class="card hidden">
+      <div class="user-badge">
+        <div>
+          <span style="color: var(--text-muted)">Logged in as: </span>
+          <span id="userEmail" style="font-weight: 600">user@areahustle.com</span>
+        </div>
+        <button id="logoutButton">Log out</button>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <h2 style="font-family: 'Outfit'; font-size: 1.35rem; margin-bottom: 0.5rem; color: #a5b4fc">1. Voice-to-Intent (STT)</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Record yourself stating a task (e.g. "I need my generator fixed at Lekki Phase 1 for 10000 naira") and see Gemini structure it.</p>
+        
+        <div class="record-controls">
+          <div id="micBtn" class="mic-button">
+            <svg class="mic-icon" viewBox="0 0 24 24">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+            </svg>
+          </div>
+          <span id="statusTxt" class="status-text">Click to start recording</span>
+          <div id="visualizer" class="visualizer-container hidden"></div>
+        </div>
+
+        <div id="sttResult" class="response-area hidden">
+          <h3>Extraction Results</h3>
+          <pre id="sttOutput"></pre>
+        </div>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 2rem 0;">
+
+      <div>
+        <h2 style="font-family: 'Outfit'; font-size: 1.35rem; margin-bottom: 0.5rem; color: #a5b4fc">2. Text-to-Speech (TTS)</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Enter text to synthesize using Aethex Kora's premium English voice.</p>
+
+        <label for="ttsInput">Text to Synthesize</label>
+        <input type="text" id="ttsInput" placeholder="Hello! I am your AreaHustle Assistant. Let me help you find jobs near Lekki.">
+
+        <button id="ttsBtn">Synthesize Speech</button>
+
+        <div id="ttsResult" class="audio-player-container hidden">
+          <label>Generated Audio</label>
+          <audio id="audioPlayer" controls></audio>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin + "/api/v1";
+    let token = localStorage.getItem("access_token");
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let animationId = null;
+
+    // UI Elements
+    const loginCard = document.getElementById("loginCard");
+    const labCard = document.getElementById("labCard");
+    const loginForm = document.getElementById("loginForm");
+    const userEmail = document.getElementById("userEmail");
+    const logoutButton = document.getElementById("logoutButton");
+    
+    const micBtn = document.getElementById("micBtn");
+    const statusTxt = document.getElementById("statusTxt");
+    const visualizer = document.getElementById("visualizer");
+    const sttResult = document.getElementById("sttResult");
+    const sttOutput = document.getElementById("sttOutput");
+
+    const ttsInput = document.getElementById("ttsInput");
+    const ttsBtn = document.getElementById("ttsBtn");
+    const ttsResult = document.getElementById("ttsResult");
+    const audioPlayer = document.getElementById("audioPlayer");
+
+    // Init state
+    if (token) {
+      showLab();
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const body = new URLSearchParams();
+      body.append("username", email);
+      body.append("password", password);
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Incorrect email or password");
+        }
+
+        const data = await res.json();
+        token = data.access_token;
+        localStorage.setItem("access_token", token);
+        showLab();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    logoutButton.addEventListener("click", () => {
+      localStorage.removeItem("access_token");
+      token = null;
+      showLogin();
+    });
+
+    async function showLab() {
+      loginCard.classList.add("hidden");
+      labCard.classList.remove("hidden");
+      
+      // Get current user details
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const user = await res.json();
+          userEmail.textContent = user.email;
+        } else {
+          // Token expired or invalid
+          localStorage.removeItem("access_token");
+          showLogin();
+        }
+      } catch (e) {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      loginCard.classList.remove("hidden");
+      labCard.classList.add("hidden");
+    }
+
+    // Audio Recording Logic
+    micBtn.addEventListener("click", async () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+
+    async function startRecording() {
+      audioChunks = [];
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const mimeType = mediaRecorder.mimeType || "audio/webm";
+          const ext = mimeType.includes("webm") ? "webm" : mimeType.includes("ogg") ? "ogg" : "wav";
+          const audioBlob = new Blob(audioChunks, { type: mimeType });
+          uploadAudio(audioBlob, ext);
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        micBtn.classList.add("recording");
+        statusTxt.textContent = "Recording... Click again to stop";
+        
+        // Start Waveform Visualizer
+        startVisualizer(stream);
+      } catch (err) {
+        alert("Microphone access denied or not supported.");
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        micBtn.classList.remove("recording");
+        statusTxt.textContent = "Processing audio...";
+        stopVisualizer();
+      }
+    }
+
+    function startVisualizer(stream) {
+      visualizer.innerHTML = "";
+      visualizer.classList.remove("hidden");
+      const numBars = 32;
+      for (let i = 0; i < numBars; i++) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        visualizer.appendChild(bar);
+      }
+
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      const bars = document.querySelectorAll(".bar");
+
+      function draw() {
+        if (!mediaRecorder || mediaRecorder.state !== "recording") return;
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        for (let i = 0; i < bufferLength; i++) {
+          const percent = dataArray[i] / 255;
+          const height = Math.max(5, percent * 50);
+          if (bars[i]) {
+            bars[i].style.height = `${height}px`;
+          }
+        }
+      }
+      draw();
+    }
+
+    function stopVisualizer() {
+      visualizer.classList.add("hidden");
+      if (animationId) cancelAnimationFrame(animationId);
+    }
+
+    async function uploadAudio(blob, ext) {
+      const formData = new FormData();
+      formData.append("file", blob, `voice.${ext}`);
+
+      try {
+        const res = await fetch(`${API_BASE}/tasks/voice-to-intent/upload`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Server failed to process audio");
+        }
+
+        const result = await res.json();
+        sttOutput.textContent = JSON.stringify(result, null, 2);
+        sttResult.classList.remove("hidden");
+        statusTxt.textContent = "Done! Review results below.";
+      } catch (err) {
+        statusTxt.textContent = "Click to start recording";
+        alert(err.message);
+      }
+    }
+
+    // TTS Logic
+    ttsBtn.addEventListener("click", async () => {
+      const text = ttsInput.value.trim();
+      if (!text) {
+        alert("Please enter some text to synthesize.");
+        return;
+      }
+
+      ttsBtn.disabled = true;
+      ttsBtn.textContent = "Synthesizing...";
+
+      try {
+        const res = await fetch(`${API_BASE}/tasks/text-to-speech?text=${encodeURIComponent(text)}`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "TTS synthesis failed");
+        }
+
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioPlayer.src = audioUrl;
+        ttsResult.classList.remove("hidden");
+        audioPlayer.play();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        ttsBtn.disabled = false;
+        ttsBtn.textContent = "Synthesize Speech";
+      }
+    });
+  </script>
+</body>
+</html>

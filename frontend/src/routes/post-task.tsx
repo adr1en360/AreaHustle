@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
@@ -27,6 +27,9 @@ function PostTask() {
   const [budget, setBudget] = useState("");
   const [area, setArea] = useState("");
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
   useEffect(() => {
     if (!isLoggedIn) nav({ to: "/" });
   }, [isLoggedIn, nav]);
@@ -44,19 +47,67 @@ function PostTask() {
     },
   });
 
-  const start = () => {
-    setPhase("recording");
-    setTimeout(async () => {
-      setPhase("processing");
-      try {
-        const result = await api.voiceToIntent("demo");
-        setVoiceResult(result);
-        setPhase("result");
-      } catch (err) {
-        toast.error("Failed to parse intent. Please try typing manually.");
-        setPhase("idle");
-      }
-    }, 2200);
+  const startRecording = async () => {
+    chunksRef.current = [];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      mediaRecorderRef.current = mr;
+
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mr.onstop = async () => {
+        setPhase("processing");
+        const mimeType = mr.mimeType || "audio/webm";
+        const ext = mimeType.includes("webm") ? "webm" : mimeType.includes("ogg") ? "ogg" : "wav";
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+
+        const formData = new FormData();
+        formData.append("file", audioBlob, `voice.${ext}`);
+
+        try {
+          const result = await api.voiceToIntentUpload(formData);
+          const entities = result.entities || result;
+          setVoiceResult(entities);
+
+          setTitle(entities.category || "");
+          setDescription(entities.description || "");
+          setBudget(entities.budget ? String(entities.budget) : "");
+          setArea(entities.neighbourhood || "");
+
+          toast.success("Speech structured! Review fields below.");
+          setPhase("idle");
+          setManualMode(true);
+        } catch (err: any) {
+          toast.error(err.message || "Failed to parse intent. Please try typing manually.");
+          setPhase("idle");
+        }
+
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mr.start();
+      setPhase("recording");
+    } catch (err) {
+      toast.error("Microphone access denied or not supported.");
+      setPhase("idle");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const handleMicClick = () => {
+    if (phase === "recording") {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -149,8 +200,8 @@ function PostTask() {
             </div>
             <div className="flex flex-col items-center text-center">
               <button
-                onClick={start}
-                disabled={phase !== "idle" && phase !== "locked"}
+                onClick={handleMicClick}
+                disabled={phase === "processing" || phase === "locked"}
                 className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-full bg-voice text-voice-foreground shadow-elevated flex items-center justify-center hover:scale-105 transition disabled:opacity-90"
               >
                 <Mic className="h-8 w-8 sm:h-10 sm:w-10" />

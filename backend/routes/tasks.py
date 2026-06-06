@@ -20,6 +20,8 @@ class TaskEntities(BaseModel):
     category: str
     neighbourhood: str
     description: str
+    budget: int
+
 
 async def extract_intent(text: str):
     response = client.models.generate_content(
@@ -164,6 +166,7 @@ async def complete_task(
 
 
 # --- Voice-to-intent ---
+from fastapi import UploadFile, File
 
 @router.post("/voice-to-intent")
 async def voice_to_intent(
@@ -171,7 +174,6 @@ async def voice_to_intent(
     db: AsyncIOMotorDatabase = Depends(get_database),
     current_user: dict = Depends(get_current_user),
 ):
-    # TODO: wire Aethex STT when endpoint docs are confirmed.
     # For hackathon demo, accept the transcript directly from the frontend
     # or use a hardcoded sample for testing.
     stt_text = "I need a car wash at Lekki Phase 1 because my car is very dirty"
@@ -181,3 +183,121 @@ async def voice_to_intent(
         return {"text": stt_text, "entities": entities}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
+
+
+import io
+
+def convert_audio_to_wav(in_bytes: bytes) -> bytes:
+    import av
+    input_io = io.BytesIO(in_bytes)
+    output_io = io.BytesIO()
+    
+    with av.open(input_io) as in_container:
+        in_stream = next((s for s in in_container.streams if s.type == 'audio'), None)
+        if not in_stream:
+            raise ValueError("No audio stream found in input file")
+            
+        with av.open(output_io, mode='w', format='wav') as out_container:
+            out_stream = out_container.add_stream('pcm_s16le', rate=24000)
+            out_stream.layout = 'mono'
+            
+            resampler = av.AudioResampler(
+                format='s16',
+                layout='mono',
+                rate=24000
+            )
+            
+            for frame in in_container.decode(in_stream):
+                resampled_frames = resampler.resample(frame)
+                for f in resampled_frames:
+                    for packet in out_stream.encode(f):
+                        out_container.mux(packet)
+            
+            for packet in out_stream.encode(None):
+                out_container.mux(packet)
+                
+    return output_io.getvalue()
+
+
+@router.post("/voice-to-intent/upload")
+async def voice_to_intent_upload(
+    file: UploadFile = File(...),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        print("[Voice Upload] Reading file...")
+        audio_bytes = await file.read()
+        print(f"[Voice Upload] Read {len(audio_bytes)} bytes. MIME: {file.content_type}")
+        
+        # Convert non-WAV formats to standard WAV before sending to Aethex
+        filename = file.filename or "audio.wav"
+        content_type = file.content_type or "audio/wav"
+        
+        if not (content_type.startswith("audio/wav") or filename.endswith(".wav")):
+            try:
+                print("[Voice Upload] Converting input audio to standard WAV format using PyAV...")
+                audio_bytes = convert_audio_to_wav(audio_bytes)
+                print(f"[Voice Upload] Successfully converted to WAV. New size: {len(audio_bytes)} bytes.")
+                filename = "converted.wav"
+                content_type = "audio/wav"
+            except Exception as conv_err:
+                print(f"[Voice Upload] Conversion failed (falling back to original): {str(conv_err)}")
+        
+        from aethexai import Kora
+        kora = Kora('https://api.aethexai.com', settings.AETHEX_API_KEY)
+        
+        print("[Voice Upload] Calling Aethex Kora transcribe...")
+        transcription_result = kora.transcribe(
+            file=audio_bytes,
+            file_name=filename,
+            mime_type=content_type,
+            language="english"
+        )
+        stt_text = transcription_result.text
+        print(f"[Voice Upload] Transcription result: '{stt_text}'")
+        
+        print("[Voice Upload] Extracting intent via Gemini...")
+        entities = await extract_intent(stt_text)
+        print("[Voice Upload] Successfully extracted entities.")
+        
+        return {"text": stt_text, "entities": entities}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Voice processing failed: {str(e)}")
+
+
+
+from fastapi import Response
+
+@router.post("/text-to-speech")
+async def text_to_speech(
+    text: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        from aethexai import Kora
+        kora = Kora('https://api.aethexai.com', settings.AETHEX_API_KEY)
+        
+        voices = kora.list_voices()
+        english_voices = [v for v in voices if v.get("language") == "english" and not v.get("is_cloned")]
+        if not english_voices:
+            english_voices = [v for v in voices if not v.get("is_cloned")]
+        
+        if not english_voices:
+            raise HTTPException(status_code=404, detail="No voices found on Aethex")
+            
+        voice_id = english_voices[0]["id"]
+        
+        audio_bytes = kora.synthesize_speech(
+            text=text,
+            voice_id=voice_id,
+            language="english"
+        )
+        return Response(content=audio_bytes, media_type="audio/mpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Text-to-speech synthesis failed: {str(e)}")
+
+

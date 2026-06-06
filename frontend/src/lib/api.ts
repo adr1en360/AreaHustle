@@ -1,4 +1,6 @@
-const BASE_URL = "https://areahustle.onrender.com/api/v1";
+const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:8000/api/v1"
+  : "https://areahustle.onrender.com/api/v1";
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token");
@@ -11,6 +13,10 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
   if (options.body instanceof URLSearchParams) {
     delete headers["Content-Type"];
     headers["Content-Type"] = "application/x-www-form-urlencoded";
+  }
+
+  if (options.body instanceof FormData) {
+    delete headers["Content-Type"];
   }
 
   let res;
@@ -75,6 +81,7 @@ export const api = {
   activateTask: (id: string) => fetchApi(`/tasks/${id}/activate`, { method: "POST" }),
   completeTask: (id: string) => fetchApi(`/tasks/${id}/complete`, { method: "POST" }),
   voiceToIntent: (audioUrl: string) => fetchApi(`/tasks/voice-to-intent?audio_url=${encodeURIComponent(audioUrl)}`, { method: "POST" }),
+  voiceToIntentUpload: (formData: FormData) => fetchApi("/tasks/voice-to-intent/upload", { method: "POST", body: formData }),
 
   // Passport & Transactions
   getPassport: () => fetchApi("/passport/me"),
