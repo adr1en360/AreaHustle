@@ -17,8 +17,9 @@ import {
   CheckCircle,
   Clock,
   MapPin,
-  X,
   TrendingUp,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -183,12 +184,63 @@ function PassportPage() {
           </div>
         </div>
 
+        {/* Top Factors & AI Tips */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
+          <div className="bg-white rounded-[2rem] p-6 sm:p-8 border border-gray-100 shadow-soft">
+            <h3 className="flex items-center gap-2 font-display text-lg font-bold text-[#0D3B2E] mb-5">
+              <TrendingUp className="h-5 w-5 text-primary" /> Top factors affecting your score
+            </h3>
+            <ul className="space-y-4">
+              <li className="flex gap-3">
+                <CheckCircle className="h-5 w-5 shrink-0 text-success" />
+                <div>
+                  <div className="font-semibold text-sm">Perfect Completion Rate</div>
+                  <div className="text-xs text-muted-foreground">You have finished 100% of your accepted jobs.</div>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle className="h-5 w-5 shrink-0 text-success" />
+                <div>
+                  <div className="font-semibold text-sm">Lightning Fast Responses</div>
+                  <div className="text-xs text-muted-foreground">Your response time is under 5 minutes.</div>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle className="h-5 w-5 shrink-0 text-success" />
+                <div>
+                  <div className="font-semibold text-sm">Zero Disputes</div>
+                  <div className="text-xs text-muted-foreground">Customers are highly satisfied with your work.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-[#4F46E5]/5 rounded-[2rem] p-6 sm:p-8 border border-[#4F46E5]/10 shadow-soft relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-5">
+              <Mic className="h-32 w-32" />
+            </div>
+            <h3 className="flex items-center gap-2 font-display text-lg font-bold text-[#4F46E5] mb-5 relative z-10">
+              <Sparkles className="h-5 w-5" /> AI Improvement Tips
+            </h3>
+            <div className="space-y-4 relative z-10">
+              <div className="bg-white/60 backdrop-blur rounded-2xl p-4 border border-white shadow-sm">
+                <div className="font-semibold text-sm text-[#4F46E5] mb-1">Pick up more weekend gigs</div>
+                <div className="text-xs text-muted-foreground leading-relaxed">Your availability on weekends is low. Hustlers active on weekends see a 15% boost in trust scores on average.</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur rounded-2xl p-4 border border-white shadow-sm">
+                <div className="font-semibold text-sm text-[#4F46E5] mb-1">Upload visual proof</div>
+                <div className="text-xs text-muted-foreground leading-relaxed">Jobs marked with 'Before & After' photos decrease dispute likelihood and increase customer rating.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* The Transaction Ledger */}
         <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
           <h2 className="font-display text-xl font-bold mb-4 text-[#0D3B2E]">Recent Payouts</h2>
           <div className="rounded-[2rem] bg-white border border-gray-100 shadow-soft p-2 sm:p-4">
             <div className="space-y-2">
-              {txns.map((t, idx) => {
+              {txns.map((t: any, idx: number) => {
                 return (
                   <div
                     key={idx}
