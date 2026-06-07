@@ -1,0 +1,349 @@
+/* ─────────────────────────────────────────────
+   PITCH DECK — Google I/O Aesthetic (Light)
+   Brand: AreaHustle Emerald Green
+   ───────────────────────────────────────────── */
+
+/* ── Scroll-Snap Container ── */
+.pitch-runner {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  background: #f0fdf4;
+}
+
+/* ── Individual Slide ── */
+.pitch-slide {
+  min-height: 100vh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f0fdf4;
+  perspective: 1200px;
+}
+
+/* ── The "Stage Card" — rounded white presentation surface ── */
+.pitch-stage {
+  background: #ffffff;
+  border-radius: 2.5rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.06);
+  width: calc(100% - 3rem);
+  max-width: 1200px;
+  min-height: calc(100vh - 4rem);
+  min-height: calc(100dvh - 4rem);
+  margin: 2rem auto;
+  padding: 3rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+/* ── Typography ── */
+.pitch-display {
+  font-family: 'Bricolage Grotesque', 'Google Sans', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: #1a1a1a;
+}
+
+.pitch-body {
+  font-family: 'Plus Jakarta Sans', 'Google Sans Text', system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.65;
+  color: #5f6368;
+}
+
+.pitch-label {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #059669;
+}
+
+.pitch-mono {
+  font-family: 'JetBrains Mono', 'Google Sans Mono', monospace;
+}
+
+/* ── Green accent for key words ── */
+.pitch-accent {
+  color: #059669;
+}
+
+/* ── Subtle section divider ── */
+.pitch-divider {
+  height: 1px;
+  background: #e8eaed;
+}
+
+/* ── Floating card (for product mockups) ── */
+.pitch-float-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid #e8eaed;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+/* ── Stacked layer card ── */
+.pitch-layer-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ── Icon container ── */
+.pitch-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pitch-icon--green { background: #ecfdf5; color: #059669; }
+.pitch-icon--dark-green { background: #d1fae5; color: #047857; }
+.pitch-icon--amber { background: #fef7e0; color: #d97706; }
+.pitch-icon--red { background: #fce8e6; color: #ea4335; }
+.pitch-icon--violet { background: #f3e8fd; color: #9334e6; }
+.pitch-icon--blue { background: #e8f0fe; color: #4285f4; }
+
+/* ── Progress Indicator ── */
+.pitch-progress {
+  position: fixed;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.pitch-progress__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d1d5db;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  padding: 0;
+}
+.pitch-progress__dot--active {
+  background: #059669;
+  transform: scale(1.5);
+  box-shadow: 0 0 8px rgba(5, 150, 105, 0.4);
+}
+
+/* ── Slide Number Badge ── */
+.pitch-slide-number {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 2rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: #9aa0a6;
+}
+
+/* ── Scroll hint ── */
+.pitch-key-hint {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6875rem;
+  color: #9aa0a6;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.pitch-key-hint svg {
+  animation: bounce-down 2s ease-in-out infinite;
+}
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+/* ── Stat highlight (massive number) ── */
+.pitch-stat {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #059669;
+}
+
+/* ── Table styling ── */
+.pitch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.pitch-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5f6368;
+  border-bottom: 2px solid #e8eaed;
+}
+.pitch-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f4;
+  color: #3c4043;
+}
+.pitch-table tr.pitch-table--highlight {
+  background: #ecfdf5;
+}
+.pitch-table tr.pitch-table--highlight td {
+  font-weight: 600;
+  color: #047857;
+  border-bottom-color: #a7f3d0;
+}
+
+/* ── Bento zoom-in card ── */
+.pitch-bento-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+/* ── Kinetic text cycling ── */
+@keyframes text-slide-up {
+  0% { transform: translateY(100%); opacity: 0; }
+  10% { transform: translateY(0%); opacity: 1; }
+  30% { transform: translateY(0%); opacity: 1; }
+  40% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* ── 3D hover tilt ── */
+.pitch-tilt {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pitch-tilt:hover {
+  transform: perspective(800px) rotateY(-3deg) rotateX(2deg) scale(1.02);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pitch-progress { display: none; }
+  .pitch-stage {
+    width: calc(100% - 1.5rem);
+    padding: 2rem 1.5rem;
+    border-radius: 1.5rem;
+    min-height: calc(100vh - 2rem);
+    min-height: calc(100dvh - 2rem);
+    margin: 1rem auto;
+  }
+}
+
+/* ── Print/PDF Styles ── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  /* Force all container elements to stretch and allow overflowing pages */
+  html, body, #root, #root > div, [data-reactroot], .pitch-runner {
+    display: block !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    overflow-x: visible !important;
+    position: static !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force each slide to start on a new page and fill landscape viewport */
+  .pitch-slide {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    position: relative !important;
+  }
+
+  /* Make the white stage cards expand to fill the printable page beautifully */
+  .pitch-stage {
+    width: 100% !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 3.5rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hide navigation controls, hints, and indicators */
+  .pitch-progress,
+  .pitch-key-hint {
+    display: none !important;
+  }
+
+  /* Force Framer Motion / animation elements to render immediately visible */
+  .pitch-stage,
+  .pitch-stage *,
+  .pitch-bento-card,
+  .pitch-float-card,
+  .pitch-layer-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+

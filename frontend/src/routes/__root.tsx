@@ -120,17 +120,27 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const isPitch = router.state.location.pathname.startsWith("/pitch");
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <PageLoader />
-        <Navbar />
-        <main className="min-h-[calc(100vh-4rem)]">
+        {isPitch ? (
+          /* Pitch deck: full-screen immersive, no app chrome */
           <Outlet />
-        </main>
-        <Footer />
-        {/* <VoiceTerminal /> */}
-        <Toaster position="top-right" richColors />
+        ) : (
+          <>
+            <PageLoader />
+            <Navbar />
+            <main className="min-h-[calc(100vh-4rem)]">
+              <Outlet />
+            </main>
+            <Footer />
+            {/* <VoiceTerminal /> */}
+            <Toaster position="top-right" richColors />
+          </>
+        )}
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PostTaskRouteImport } from './routes/post-task'
+import { Route as PitchRouteImport } from './routes/pitch'
 import { Route as PassportRouteImport } from './routes/passport'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as JobsRouteImport } from './routes/jobs'
@@ -25,6 +26,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PostTaskRoute = PostTaskRouteImport.update({
   id: '/post-task',
   path: '/post-task',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PitchRoute = PitchRouteImport.update({
+  id: '/pitch',
+  path: '/pitch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PassportRoute = PassportRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
+  '/pitch': typeof PitchRoute
   '/post-task': typeof PostTaskRoute
   '/profile': typeof ProfileRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
+  '/pitch': typeof PitchRoute
   '/post-task': typeof PostTaskRoute
   '/profile': typeof ProfileRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/jobs': typeof JobsRoute
   '/onboarding': typeof OnboardingRoute
   '/passport': typeof PassportRoute
+  '/pitch': typeof PitchRoute
   '/post-task': typeof PostTaskRoute
   '/profile': typeof ProfileRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/onboarding'
     | '/passport'
+    | '/pitch'
     | '/post-task'
     | '/profile'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/onboarding'
     | '/passport'
+    | '/pitch'
     | '/post-task'
     | '/profile'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/onboarding'
     | '/passport'
+    | '/pitch'
     | '/post-task'
     | '/profile'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   JobsRoute: typeof JobsRoute
   OnboardingRoute: typeof OnboardingRoute
   PassportRoute: typeof PassportRoute
+  PitchRoute: typeof PitchRoute
   PostTaskRoute: typeof PostTaskRoute
   ProfileRoute: typeof ProfileRoute
 }
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/post-task'
       fullPath: '/post-task'
       preLoaderRoute: typeof PostTaskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pitch': {
+      id: '/pitch'
+      path: '/pitch'
+      fullPath: '/pitch'
+      preLoaderRoute: typeof PitchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/passport': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   JobsRoute: JobsRoute,
   OnboardingRoute: OnboardingRoute,
   PassportRoute: PassportRoute,
+  PitchRoute: PitchRoute,
   PostTaskRoute: PostTaskRoute,
   ProfileRoute: ProfileRoute,
 }

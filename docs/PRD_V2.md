@@ -1,7 +1,8 @@
-# AreaHustle — Product Requirements Document v2.0
+# AreaHustle — Product Requirements Document v2.1
 
-**Version:** 2.0 | **Date:** June 5, 2026 | **Market:** Nigeria
+**Version:** 2.1 | **Date:** June 7, 2026 | **Market:** Lagos, Nigeria (Pilot)
 **Tagline:** *"Your Area. Your Hustle. Your Proof."*
+**Beachhead:** Lekki-Ajah + Magodo-Gbagada corridors, Lagos State*
 
 ---
 
@@ -9,9 +10,9 @@
 
 AreaHustle is a voice-first hyper-local gig marketplace that turns everyday hustle into bankable proof.
 
-The platform connects Nigerian households and small businesses with verified local service providers (Hustlers) for everyday tasks — car washing, generator servicing, cleaning, minor repairs, and errands. But the marketplace is not the product. The product is the **Verified Work Data Package** that every completed job generates.
+The platform connects Lagos households and small businesses with verified local service providers (Hustlers) for everyday tasks — car washing, generator servicing, cleaning, minor repairs, and errands. But the marketplace is not the product. The product is the **Verified Work Data Package** that every completed job generates.
 
-Nigeria has ~3 million gig workers and a ~$5.17 billion informal economy. These workers are financially invisible — no payslips, no formal transaction history, no path to credit. Banks and MFBs cannot underwrite them because the data doesn't exist.
+Lagos accounts for ~40-50% of Nigeria's informal economy. With 5.58 million informal workers and a gig economy valued at $2.2B, Lagos is a self-contained pilot market. 65% of its working population is informal — people like Emeka the hustler: he washes cars, fixes generators, runs errands, and takes on whatever work comes his way. His income is inconsistent, he has no employer, no payslip, and no path to credit. 70% of Lagos workers earn between ₦50,000 and ₦120,000 monthly. No bank builds a profile for them.
 
 **AreaHustle fixes the data problem, not the lending problem.**
 
@@ -35,16 +36,19 @@ Every completed job produces verified income data, reliability signals, and beha
 
 ### 2.1 Customer Side
 - Middle-class estate residents in Lagos cannot reliably source verified help for routine tasks.
+- A professional in Lekki spends ₦20,000–₦50,000/month on repairs and domestic services with no way to find verified help.
 - WhatsApp group referrals are inconsistent, unsafe, and unprotected.
 - Cash-only transactions create payment disputes with no recourse.
 
 ### 2.2 Hustler (Service Provider) Side
+- 65% of Lagos's working population is informal (5.58 million people).
 - Informal workers waste productive hours waiting for sporadic jobs.
+- 70% earn between ₦50,000 and ₦120,000/month — the survival trap.
 - No protection against non-payment, no receipts, no financial history.
-- Digital lenders (FairMoney, Carbon, Branch, Tala) cannot underwrite them: no payslips, no formal transaction history, no collateral.
+- Digital lenders (FairMoney, Carbon, Branch) cannot underwrite them: no payslips, no formal transaction history, no collateral.
 
 ### 2.3 The Credit Data Gap
-Nigerian credit bureaus (CRC, CreditRegistry) are actively seeking alternative data sources for informal workers under the Credit Reporting Act of 2017. They accept data from telecoms, utilities, and digital platforms — but no gig platform in Nigeria currently generates structured creditworthiness data for its workers.
+Nigerian credit bureaus (CRC, CreditRegistry) are actively seeking alternative data sources for informal workers under the Credit Reporting Act of 2017. No gig platform in Nigeria currently generates structured creditworthiness data for informal workers in Lagos.
 
 **AreaHustle closes this gap.**
 
@@ -323,13 +327,13 @@ After 3-4 successful jobs, the customer has the hustler's WhatsApp. They transac
 ## 13. Demo Flow (2-Minute Pitch)
 
 **[0:00-0:15] THE HOOK**
-"Last week, a generator mechanic in Lekki earned ₦180,000. No bank will give him a ₦30,000 loan. Why? His income doesn't exist on paper."
+"In Lagos, 65% of workers are informal. Meet Emeka. He washes cars on Monday, fixes generators on Wednesday, runs errands on Friday. He earns differently every single week. No fixed income. No payslip. No employer. No bank will lend him ₦50,000."
 
 **[0:15-0:40] THE INSIGHT**
-"We don't lend. We prove you're lendable. AreaHustle is a voice-first gig marketplace that generates the exact credit data Nigerian banks need — but can't get — from informal workers."
+"We don't lend. We prove you're lendable. AreaHustle is a voice-first gig marketplace that generates the exact credit data Nigerian banks need — but can't get — from informal workers in Lagos."
 
 **[0:40-1:05] DEMO: VOICE POST + AI NOTIFICATION**
-Customer speaks task. Gemini extracts. Card appears. Escrow locks. AI Agent calls Emeka: "There's a generator servicing job in Lekki Phase 1 for eight thousand naira. Do you want to accept?" Emeka says yes. Job matched in 40 seconds.
+Customer speaks task. Gemini extracts. Card appears. Escrow locks. AI Agent calls Emeka: "There's a generator servicing job in Lekki Phase 1 for eight thousand naira. Do you want to accept?" Emeka says yes. Job matched in under 2 seconds.
 
 **[1:05-1:35] DEMO: THE PASSPORT**
 Open Emeka's Financial Passport. Trust Score 820. 47 jobs. 94% completion. 31 repeat hires. ₦135,000 verified income over 90 days. "No bank built this profile. Emeka built it, one job at a time."
