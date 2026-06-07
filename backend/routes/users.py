@@ -75,3 +75,34 @@ async def list_nearby_hustlers(
         doc["_id"] = str(doc["_id"])
         profiles.append(doc)
     return profiles
+
+
+@router.post("/wallet/update")
+async def update_wallet(
+    payload: dict,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    amount = float(payload.get("amount", 0.0))
+    user_id = str(current_user.get("_id"))
+    
+    # Update balance
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$inc": {"wallet_balance": amount}}
+    )
+    
+    # Record transaction log
+    from datetime import datetime
+    tx_type = "topup" if amount > 0 else "withdrawal"
+    await db.transactions.insert_one({
+        "user_id": user_id,
+        "type": tx_type,
+        "amount": abs(amount),
+        "desc": f"Demo {tx_type.capitalize()}",
+        "location": "Lekki Phase 1",
+        "timestamp": datetime.utcnow()
+    })
+    
+    updated_user = await db.users.find_one({"_id": ObjectId(user_id)})
+    return {"wallet_balance": updated_user.get("wallet_balance", 0.0)}

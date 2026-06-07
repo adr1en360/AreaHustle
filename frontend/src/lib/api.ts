@@ -87,4 +87,5 @@ export const api = {
   getPassport: () => fetchApi("/passport/me"),
   getProofCard: () => fetchApi("/passport/proof-card"),
   getTransactions: () => fetchApi("/transactions/"),
+  updateWallet: (amount: number) => fetchApi("/users/wallet/update", { method: "POST", body: JSON.stringify({ amount }) }),
 };

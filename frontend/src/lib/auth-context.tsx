@@ -89,8 +89,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toast.info("Logged out successfully");
   };
 
-  const updateDemoBalance = (role: string, amount: number) => {
-    refreshUser();
+  const updateDemoBalance = async (role: string, amount: number) => {
+    try {
+      await api.updateWallet(amount);
+      await refreshUser();
+    } catch (err: any) {
+      toast.error("Failed to update wallet balance: " + err.message);
+    }
   };
 
   const addDemoTransaction = (txn: any) => {

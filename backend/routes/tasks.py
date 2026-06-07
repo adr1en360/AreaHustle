@@ -31,10 +31,17 @@ async def extract_intent(text: str):
             'response_mime_type': 'application/json',
             'response_schema': TaskEntities,
             'system_instruction': """
-            You are a task extractor for the AreaHustle app.
-            Extract task entities from the user's transcript.
-            Categories: Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other.
-            Neighbourhoods: Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu.
+            You are a smart task extractor for the AreaHustle app.
+            
+            Your main job is to process and CLEAN UP noisy, garbled, or phonetically incorrect audio transcripts.
+            
+            First, mentally reconstruct what the user was trying to say by correcting phonetic typos, misheard words, slurred speech, Nigerian/local context terms, or punctuation issues.
+            
+            Then, extract the structured fields:
+            - **category**: Must be one of: [Car Wash, Generator Service, Cleaning, Minor Repairs, Errands, Laundry, Tutoring, Other]. Map the corrected intent to the best matching category.
+            - **neighbourhood**: Must be one of: [Lekki Phase 1, Ajah, Sangotedo, Magodo, Ketu]. If a word sounds like one of these (e.g., "Lekky", "Leki", "Asia" instead of "Ajah", "Sango"), correct it to the official name. Default to "Lekki Phase 1" if not mentioned.
+            - **description**: A clean, grammatically corrected, and well-punctuated sentence explaining the job clearly (e.g. "I need someone to wash my black SUV" instead of "watch my black s u v").
+            - **budget**: Extract the numerical budget. Correct sound-alike numbers (e.g., "eight thousand" -> 8000, "15k" -> 15000). Default to 5000 if not specified.
             """
         }
     )
