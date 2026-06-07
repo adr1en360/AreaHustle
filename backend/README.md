@@ -29,7 +29,7 @@ Create a `.env` file:
 ```env
 MONGODB_URL=mongodb://localhost:27017
 AETHEX_API_KEY=your_aethex_key
-AETHEX_PASSPORT_AGENT_ID=your_agent_id
+AETHEX_NOTIFIER_AGENT_ID=your_notifier_agent_id  # from: python agents/setup_notifier_agent.py
 GEMINI_API_KEY=your_gemini_key
 ```
 

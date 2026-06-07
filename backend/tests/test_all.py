@@ -13,7 +13,7 @@ async def run_all_tests():
     await run_backend_tests()
 
     # AI stack tests (can run standalone)
-    if os.getenv("AETHEX_API_KEY") and os.getenv("AETHEX_PASSPORT_AGENT_ID"):
+    if os.getenv("AETHEX_API_KEY") and os.getenv("AETHEX_NOTIFIER_AGENT_ID"):
         print("\n--- Test: Aethex Voice Agent Connection ---")
         await test_connect()
     else:

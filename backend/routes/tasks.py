@@ -455,3 +455,109 @@ async def text_to_speech(
         raise HTTPException(status_code=500, detail=f"Text-to-speech synthesis failed: {str(e)}")
 
 
+# ---------------------------------------------------------------------------
+# AI Agent Notification Queue  (PRD Pillar 2)
+# ---------------------------------------------------------------------------
+
+@router.post("/notify-hustlers/{task_id}", status_code=status.HTTP_202_ACCEPTED)
+async def notify_hustlers(
+    task_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Trigger the AI agent outbound-call queue for a task.
+    Returns 202 immediately; the call queue runs in the background.
+    Only the task's customer may trigger this.
+    """
+    import asyncio
+    from agents.hustler_notifier import run_notification_queue
+
+    task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if task.get("customer_id") != str(current_user.get("_id")):
+        raise HTTPException(status_code=403, detail="Only the task owner can trigger notifications")
+
+    if task.get("status") != "open":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Task must be open to notify hustlers (current status: {task.get('status')})",
+        )
+
+    # Fire-and-forget — queue runs in the background
+    asyncio.create_task(run_notification_queue(task_id, db))
+
+    return {
+        "message": "Hustler notification queue started",
+        "task_id": task_id,
+        "status": "queued",
+    }
+
+
+@router.post("/agent-callback")
+async def agent_callback(
+    payload: dict,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    """
+    Webhook called by Aethex when the accept_job tool fires mid-call.
+
+    Aethex sends:
+        { "call_id": "...", "conversation_id": "...", "agent_id": "...", "arguments": {} }
+
+    This endpoint:
+    1. Looks up the pending_call by call_id to resolve task_id + hustler_id.
+    2. Matches the task (status = "matched", matched_hustler_id = hustler_id).
+    3. Returns JSON that Aethex feeds back to the LLM so the agent can
+       verbally confirm the booking to the hustler before hanging up.
+    """
+    call_id = payload.get("call_id")
+    if not call_id:
+        raise HTTPException(status_code=422, detail="Missing call_id in payload")
+
+    # Resolve task + hustler from the in-flight pending_calls record
+    pending = await db.pending_calls.find_one({"call_id": call_id})
+    if not pending:
+        raise HTTPException(status_code=404, detail=f"No pending call for call_id={call_id}")
+
+    task_id = pending.get("task_id")
+    hustler_id = pending.get("hustler_id")
+
+    # Guard: only match if task is still open or matching
+    task = await db.tasks.find_one({"_id": ObjectId(task_id)})
+    if not task:
+        return {"status": "error", "message": "Task not found — please contact support."}
+
+    if task.get("status") not in ("open", "matching"):
+        # Already claimed — idempotent, friendly response
+        return {
+            "status": "already_matched",
+            "message": "Sorry, this job was just taken by another hustler. We'll call you for the next one!",
+        }
+
+    # Perform the match atomically
+    await db.tasks.update_one(
+        {"_id": ObjectId(task_id)},
+        {"$set": {"status": "matched", "matched_hustler_id": hustler_id}},
+    )
+
+    # Mark the pending call record as accepted
+    await db.pending_calls.update_one(
+        {"call_id": call_id},
+        {"$set": {"status": "accepted"}},
+    )
+
+    # Fetch hustler name for the verbal confirmation the LLM will speak
+    hustler = await db.users.find_one({"_id": ObjectId(hustler_id)})
+    hustler_name = hustler.get("name", "there") if hustler else "there"
+
+    return {
+        "status": "matched",
+        "message": (
+            f"Great news, {hustler_name}! You have been booked for the job. "
+            "The customer has been notified. Please be ready to start. "
+            "Good luck on the hustle!"
+        ),
+    }

@@ -7,42 +7,41 @@ load_dotenv()
 
 AETHEX_API_KEY = os.getenv("AETHEX_API_KEY")
 AETHEX_BASE_URL = "https://api.aethexai.com/api/v1"
-AGENT_ID = os.getenv("AETHEX_PASSPORT_AGENT_ID")
+AGENT_ID = os.getenv("AETHEX_NOTIFIER_AGENT_ID")
+
 
 async def test_connect():
-    print(f"Testing Aethex Connection with Agent ID: {AGENT_ID}")
+    """
+    Smoke test: verify the notifier agent exists and is reachable on Aethex.
+    Calls GET /agents/{id} — does NOT place a real call.
+    """
+    print(f"Testing Aethex notifier agent: {AGENT_ID}")
     async with httpx.AsyncClient() as client:
         headers = {
             "X-API-Key": AETHEX_API_KEY,
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "agent_id": AGENT_ID,
-            "metadata": {
-                "hustler_id": "test_hustler_123",
-                "trust_score": 850,
-                "completed_jobs": 15
-            }
+            "Content-Type": "application/json",
         }
         try:
-            response = await client.post(
-                f"{AETHEX_BASE_URL}/conversation/connect", 
-                json=payload, 
-                headers=headers
+            response = await client.get(
+                f"{AETHEX_BASE_URL}/agents/{AGENT_ID}",
+                headers=headers,
             )
             print(f"Status Code: {response.status_code}")
-            if response.status_code == 201:
+            if response.status_code == 200:
                 data = response.json()
-                print("Successfully connected to Aethex!")
-                print(f"Session ID: {data.get('session_id')}")
-                print(f"ICE Config: {data.get('ice_config') is not None}")
+                print("[OK] Notifier agent reachable")
+                print(f"  name:     {data.get('name')}")
+                print(f"  language: {data.get('language')}")
+                print(f"  voice_id: {data.get('voice_id')}")
             else:
-                print(f"Failed: {response.text}")
+                print(f"[FAIL] Failed: {response.text}")
         except Exception as e:
-            print(f"An error occurred: {str(e)}")
+            print(f"[ERROR] Error: {str(e)}")
+
 
 if __name__ == "__main__":
     if not AETHEX_API_KEY or not AGENT_ID:
-        print("Error: AETHEX_API_KEY or AETHEX_PASSPORT_AGENT_ID missing in .env")
+        print("Error: AETHEX_API_KEY or AETHEX_NOTIFIER_AGENT_ID missing in .env")
+        print("Run: python agents/setup_notifier_agent.py to create the agent first.")
     else:
         asyncio.run(test_connect())

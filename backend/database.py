@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "areahustle"
     AETHEX_API_KEY: str = ""
     AETHEX_BASE_URL: str = "https://api.aethexai.com/api/v1"
-    AETHEX_PASSPORT_AGENT_ID: str = ""
+    AETHEX_NOTIFIER_AGENT_ID: str = ""
     GEMINI_API_KEY: str = ""
     AETHEX_FROM_NUMBER: str = ""
     AH_CALLBACK_URL: str = ""
@@ -31,6 +31,8 @@ async def init_db():
     await db.users.create_index("email", unique=True)
     # Transactions: user_id + type index
     await db.transactions.create_index([("user_id", 1), ("timestamp", -1)])
+    # Pending calls: lookup by call_id for agent callback resolution
+    await db.pending_calls.create_index("call_id", unique=True)
 
 async def get_database():
     return db

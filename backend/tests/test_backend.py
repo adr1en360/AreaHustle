@@ -148,7 +148,7 @@ async def run_all():
     await test_escrow_and_payout()
 
     # AI stack (if keys present)
-    if os.getenv("AETHEX_API_KEY") and os.getenv("AETHEX_PASSPORT_AGENT_ID"):
+    if os.getenv("AETHEX_API_KEY") and os.getenv("AETHEX_NOTIFIER_AGENT_ID"):
         print("\n--- Test: Aethex Connection ---")
         await test_connect()
     else:
