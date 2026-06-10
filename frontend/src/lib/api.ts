@@ -1,5 +1,4 @@
-const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  : "https://areahustle.onrender.com/api/v1";
+
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token");
