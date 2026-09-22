@@ -3,6 +3,8 @@
 .env
 *.pyc
 .uv
+.vscode/
+.vscode
 skills/
 GEMINI.md
 Google io shot/

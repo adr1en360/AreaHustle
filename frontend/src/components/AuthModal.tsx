@@ -50,7 +50,7 @@ export function AuthModal({ open, onClose, initialRole, initialMode }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-background/80 animate-in fade-in">
-      <div className="relative w-full max-w-md rounded-3xl bg-card border shadow-elevated p-8">
+      <div className="relative w-full max-w-xl rounded-3xl bg-card border shadow-elevated p-6 py-4">
         <button onClick={onClose} className="absolute right-6 top-6 text-muted-foreground hover:text-foreground">
           <X className="h-5 w-5" />
         </button>
