@@ -118,12 +118,7 @@ function ProfilePage() {
   };
 
   if (userRole !== "hustler") {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Customer Profile</h1>
-        <p className="text-muted-foreground">Customers manage their settings directly from the dashboard.</p>
-      </div>
-    );
+    return <CustomerProfile user={user} />;
   }
 
   return (
@@ -248,6 +243,89 @@ function ProfilePage() {
             <p className="text-xs text-muted-foreground mt-4">Select the types of tasks you specialize in to get better matching accuracy.</p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function CustomerProfile({ user }: { user: any }) {
+  const [name, setName] = useState(user?.name || "Demo Customer");
+  const [phone, setPhone] = useState(user?.phone_number || "");
+  const [area, setArea] = useState("Lekki Phase 1");
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="animate-fade-up">
+        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Your account</div>
+        <h1 className="mt-2 font-display text-4xl font-bold tracking-tight sm:text-5xl">Customer profile</h1>
+        <p className="mt-4 max-w-2xl text-muted-foreground">Keep your contact details and neighborhood preferences ready for every task you post.</p>
+      </div>
+      <div className="mt-10 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="rounded-3xl border bg-card p-6 text-center shadow-soft animate-scale-in">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-soft">
+            <User className="h-10 w-10" />
+          </div>
+          <h2 className="mt-5 font-display text-xl font-bold">{name || "Your name"}</h2>
+          <p className="mt-1 truncate text-sm text-muted-foreground">{user?.email}</p>
+          <div className="mt-5 inline-flex rounded-full border border-success/20 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success">
+            Demo customer
+          </div>
+        </div>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            toast.success("Profile saved locally.");
+          }}
+          className="rounded-3xl border bg-card p-6 shadow-soft animate-fade-up sm:p-8"
+        >
+          <div className="flex items-center justify-between border-b pb-5">
+            <div>
+              <h2 className="font-display text-2xl font-bold">Personal details</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Used to keep your local requests easy to fulfill.</p>
+            </div>
+            <User className="h-5 w-5 text-primary" />
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <label className="grid gap-2 text-sm font-semibold">
+              Full name
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="min-h-12 rounded-2xl border bg-background px-4 py-3 font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-semibold">
+              Phone number
+              <input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className="min-h-12 rounded-2xl border bg-background px-4 py-3 font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
+              Preferred neighborhood
+              <select
+                value={area}
+                onChange={(event) => setArea(event.target.value)}
+                className="min-h-12 rounded-2xl border bg-background px-4 py-3 font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+              >
+                <option>Lekki Phase 1</option>
+                <option>Yaba</option>
+                <option>Ikeja GRA</option>
+                <option>Victoria Island</option>
+                <option>Ajah</option>
+              </select>
+            </label>
+          </div>
+          <div className="mt-8 flex justify-end">
+            <button
+              type="submit"
+              className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-soft transition hover:-translate-y-0.5 hover:shadow-elevated"
+            >
+              Save profile
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

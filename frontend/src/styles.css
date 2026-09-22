@@ -224,6 +224,36 @@
   animation: scale-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+@utility auth-input {
+  width: 100%;
+  min-height: 3.25rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-border) 90%, var(--color-foreground));
+  background: color-mix(in oklab, var(--color-background) 88%, var(--color-card));
+  padding: 0.875rem 1rem;
+  color: var(--color-foreground);
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+@utility auth-input:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 35%, var(--color-border));
+}
+@utility auth-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 15%, transparent);
+  background: var(--color-card);
+  transform: translateY(-1px);
+}
+@utility auth-input::placeholder {
+  color: var(--color-muted-foreground);
+  opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

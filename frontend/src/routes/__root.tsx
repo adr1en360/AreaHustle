@@ -135,7 +135,7 @@ function RootComponent() {
           <>
             <PageLoader />
             <Navbar />
-            <main key={location.pathname} className="min-h-[calc(100vh-4rem)] animate-page-enter">
+            <main key={location.pathname} className="min-h-[calc(100vh-4rem)] pb-24 animate-page-enter sm:pb-0">
               <PageMotion>
                 <Outlet />
               </PageMotion>

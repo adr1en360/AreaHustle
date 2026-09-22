@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PostTaskRouteImport } from './routes/post-task'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/post-task': typeof PostTaskRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/post-task': typeof PostTaskRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/post-task': typeof PostTaskRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/post-task'
     | '/privacy'
     | '/profile'
+    | '/settings'
     | '/terms'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/post-task'
     | '/privacy'
     | '/profile'
+    | '/settings'
     | '/terms'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/post-task'
     | '/privacy'
     | '/profile'
+    | '/settings'
     | '/terms'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   PostTaskRoute: typeof PostTaskRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   PostTaskRoute: PostTaskRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
