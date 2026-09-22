@@ -26,7 +26,7 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
   } catch (error: any) {
     // Catches net::ERR_CONNECTION_CLOSED, CORS drops, and network offline issues
     throw new Error(
-      "Unable to connect to the backend. It might be waking up from sleep (Render free tier) or is currently offline. Please wait 30 seconds and try again.",
+      "Please refresh the browser and try again.",
     );
   }
 
