@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, useRouter, useLocation, HeadContent, Scripts } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { VoiceTerminal } from "@/components/VoiceTerminal";
 import { PageLoader } from "@/components/PageLoader";
 import { Toaster } from "@/components/ui/sonner";
+import { PageMotion } from "@/components/PageMotion";
 
 function NotFoundComponent() {
   return (
@@ -121,6 +122,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const location = useLocation();
   const isPitch = router.state.location.pathname.startsWith("/pitch");
 
   return (
@@ -133,10 +135,14 @@ function RootComponent() {
           <>
             <PageLoader />
             <Navbar />
-            <main className="min-h-[calc(100vh-4rem)]">
-              <Outlet />
+            <main key={location.pathname} className="min-h-[calc(100vh-4rem)] animate-page-enter">
+              <PageMotion>
+                <Outlet />
+              </PageMotion>
             </main>
-            <Footer />
+            <div key={`footer-${location.pathname}`} className="animate-footer-enter">
+              <Footer />
+            </div>
             {/* <VoiceTerminal /> */}
             <Toaster position="top-right" richColors />
           </>

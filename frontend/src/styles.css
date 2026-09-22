@@ -36,8 +36,8 @@
   --color-success-foreground: var(--success-foreground);
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.04);
-  --shadow-elevated: 0 20px 60px -20px rgba(0,0,0,0.08);
+  --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 20px 60px -20px rgba(0, 0, 0, 0.08);
 }
 
 :root {
@@ -68,8 +68,12 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html { scroll-behavior: smooth; }
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -77,44 +81,156 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
-@utility font-display { font-family: var(--font-display); letter-spacing: -0.025em; }
-@utility shadow-soft { box-shadow: var(--shadow-soft); }
-@utility shadow-elevated { box-shadow: var(--shadow-elevated); }
+@utility font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
 @utility glass {
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: saturate(180%) blur(20px);
 }
 
 @keyframes voice-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.4); opacity: 0; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
 @keyframes wave {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
 }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes footer-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes scroll-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(40px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.94); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes check {
-  0% { stroke-dashoffset: 50; }
-  100% { stroke-dashoffset: 0; }
+  0% {
+    stroke-dashoffset: 50;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 
-@utility animate-voice-pulse { animation: voice-pulse 1.8s ease-out infinite; }
-@utility animate-wave { animation: wave 1s ease-in-out infinite; }
-@utility animate-fade-up { animation: fade-up 0.7s cubic-bezier(.2,.8,.2,1) both; }
-@utility animate-slide-in-right { animation: slide-in-right 0.5s cubic-bezier(.2,.8,.2,1) both; }
-@utility animate-scale-in { animation: scale-in 0.4s cubic-bezier(.2,.8,.2,1) both; }
+@utility animate-voice-pulse {
+  animation: voice-pulse 1.8s ease-out infinite;
+}
+@utility animate-wave {
+  animation: wave 1s ease-in-out infinite;
+}
+@utility animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-page-enter {
+  animation: page-enter 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-footer-enter {
+  animation: footer-enter 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) 100ms both;
+}
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  will-change: opacity, transform;
+}
+.scroll-reveal.is-visible {
+  animation: scroll-reveal 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) var(--reveal-delay, 0ms) both;
+}
+@utility animate-slide-in-right {
+  animation: slide-in-right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
